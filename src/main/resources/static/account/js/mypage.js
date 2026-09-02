@@ -55,9 +55,20 @@ if (viewKey === 'profile') {
     document.querySelector('[data-loading-state]').hidden = true;
 
     configureAccountActions(profile);
-} else if (viewKey === 'offers') {
-    document.querySelector('[data-proposal-panel]').hidden = false;
-    document.querySelector('[data-loading-state]').hidden = true;
+} else if (
+    [
+        'offers',
+        'buying-proposals',
+        'selling-proposals',
+    ].includes(viewKey)
+) {
+    document.querySelector(
+        '[data-proposal-panel]'
+    ).hidden = false;
+
+    document.querySelector(
+        '[data-loading-state]'
+    ).hidden = true;
 
     configureProposalView(profile);
 } else {
@@ -234,7 +245,7 @@ function configureViewTabs(profile) {
 }
 
 /**
- * 제안 관리 화면에서 계정 역할에 맞는 탭을 표시합니다.
+ * 제안 목록을 사용하는 마이페이지 화면의 탭 표시를 구성합니다.
  */
 function configureProposalView(profile) {
     const sentTab =
@@ -247,6 +258,21 @@ function configureProposalView(profile) {
             '.proposal-list-tabs'
         );
 
+    const groupedNegotiationView =
+        viewKey === 'buying-proposals'
+        || viewKey === 'selling-proposals';
+
+    // 구매/판매 협의 화면에서는 마이페이지 상단 탭이
+    // 역할을 대신하므로 Proposal 자체 탭은 표시하지 않는다.
+    if (groupedNegotiationView) {
+        if (tabContainer) {
+            tabContainer.hidden = true;
+        }
+
+        return;
+    }
+
+    // 기존 /mypage/offers 경로 호환 처리
     const seller =
         profile.role === 'SELLER';
 
@@ -255,8 +281,6 @@ function configureProposalView(profile) {
     }
 
     if (tabContainer) {
-        // 일반 회원은 받은 제안만 사용할 수 있으므로
-        // 선택지가 하나뿐인 탭 UI는 표시하지 않는다.
         tabContainer.hidden = !seller;
     }
 }

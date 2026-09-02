@@ -3,9 +3,14 @@ import {authFetch, readApiBody, readCurrentUserId} from '/account/js/auth-client
 /**
  * 받은 제안과 보낸 제안 목록을 조회하고 받은 제안 비교 기능을 제공한다.
  */
+const pagePath =
+    window.location.pathname;
+
 const supportedPage =
-    window.location.pathname === '/proposals'
-    || window.location.pathname === '/mypage/offers';
+    pagePath === '/proposals'
+    || pagePath === '/mypage/offers'
+    || pagePath === '/mypage/buying-proposals'
+    || pagePath === '/mypage/selling-proposals';
 
 const proposalList =
     document.getElementById('proposalList');
@@ -778,10 +783,14 @@ function initialize() {
 
         return;
     }
-
     bindEvents();
 
-    loadProposals('received');
+    const initialTab =
+        pagePath === '/mypage/selling-proposals'
+            ? 'sent'
+            : 'received';
+
+    selectTab(initialTab);
 }
 
 initialize();

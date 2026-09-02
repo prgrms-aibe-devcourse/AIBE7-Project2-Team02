@@ -23,6 +23,7 @@ public class OrderRequestResponseDTO {
     private final BigDecimal budget;
     private final String category;
     private final String deliveryAddress;
+    private final String deliveryAddressDetail;
     private final Double latitude;
     private final Double longitude;
     private final String referenceImageUrl;
@@ -38,8 +39,14 @@ public class OrderRequestResponseDTO {
         this.budgetType = orderRequest.getBudgetType();
         this.budget = orderRequest.getBudget();
         this.category = orderRequest.getCategory();
-        this.deliveryAddress = orderRequest.getDeliveryAddress();
-        this.latitude = orderRequest.getLatitude();
+        this.deliveryAddress =
+                orderRequest.getDeliveryAddress();
+
+        this.deliveryAddressDetail =
+                orderRequest.getDeliveryAddressDetail();
+
+        this.latitude =
+                orderRequest.getLatitude();
         this.longitude = orderRequest.getLongitude();
         this.referenceImageUrl =
                 orderRequest.getReferenceImageUrl();

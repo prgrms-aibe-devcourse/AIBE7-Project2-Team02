@@ -83,8 +83,8 @@ async function startChatWithSeller(productId) {
     try {
         const response = await authFetch('/api/v1/chat-rooms', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, originType: 'INQUIRY' })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({productId, originType: 'INQUIRY'})
         });
 
         if (!response.ok) {
@@ -130,9 +130,14 @@ async function loadDetail() {
             product.deliveryRadiusKm != null
                 ? `최대 ${product.deliveryRadiusKm}km`
                 : '-';
-        document.getElementById('storeAddress').textContent = product.storeAddress ?? '-';
-        document.getElementById('category').textContent = product.category ?? '-';
-        document.getElementById('description').textContent = product.description ?? '-';
+        document.getElementById('storeAddress').textContent =
+            product.storeAddress ?? '-';
+
+        document.getElementById('storeAddressDetail').textContent =
+            product.storeAddressDetail ?? '-';
+
+        document.getElementById('category').textContent =
+            document.getElementById('description').textContent = product.description ?? '-';
         document.getElementById('dayOfWeek').textContent = dayOfWeekMap[product.dayOfWeek] ?? '없음';
         document.getElementById('ratingAvg').textContent =
             product.ratingAvg != null

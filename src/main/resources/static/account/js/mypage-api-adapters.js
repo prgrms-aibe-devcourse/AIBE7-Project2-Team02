@@ -3,10 +3,17 @@ const adapters = {
     products: adaptProduct,
     purchases: adaptPurchase,
     sales: adaptSale,
-    receivedOffers: (record) => adaptOffer(record, '받은 오퍼'),
-    sentOffers: (record) => adaptOffer(record, '보낸 오퍼'),
-    receivedEstimates: (record) => adaptEstimate(record, '받은 견적'),
-    sentEstimates: (record) => adaptEstimate(record, '보낸 견적'),
+    receivedOffers: (record) =>
+        adaptOffer(record, '받은 제안'),
+
+    sentOffers: (record) =>
+        adaptOffer(record, '보낸 제안'),
+
+    receivedEstimates: (record) =>
+        adaptEstimate(record, '받은 견적 요청'),
+
+    sentEstimates: (record) =>
+        adaptEstimate(record, '보낸 견적 요청'),
     chats: adaptChatRoom,
 };
 
@@ -17,8 +24,8 @@ const sourceLabels = {
     sales: '판매 거래',
     receivedOffers: '받은 제안',
     sentOffers: '보낸 제안',
-    receivedEstimates: '받은 견적',
-    sentEstimates: '보낸 견적',
+    receivedEstimates: '받은 견적 요청',
+    sentEstimates: '보낸 견적 요청',
     chats: '채팅',
 };
 
@@ -152,6 +159,114 @@ export const mypageViews = Object.freeze({
                 sellerOnly: true,
             },
         ],
+    },
+    'buying-estimates': {
+        title: '구매 협의',
+        kicker: 'BUYING',
+        group: 'buying-negotiation',
+
+        tabs: [
+            {
+                key: 'buying-estimates',
+                label: '보낸 견적 요청',
+                href: '/mypage/buying-estimates',
+            },
+            {
+                key: 'buying-proposals',
+                label: '받은 제안',
+                href: '/mypage/buying-proposals',
+            },
+        ],
+
+        empty: [
+            '보낸 견적 요청이 없습니다.',
+            '상품에서 견적을 요청하면 이곳에서 확인할 수 있습니다.',
+        ],
+
+        sources: [
+            {
+                key: 'sentEstimates',
+                label: '보낸 견적 요청',
+                endpoint: '/api/v1/estimates/sent',
+            },
+        ],
+    },
+
+    'buying-proposals': {
+        title: '구매 협의',
+        kicker: 'BUYING',
+        group: 'buying-negotiation',
+
+        tabs: [
+            {
+                key: 'buying-estimates',
+                label: '보낸 견적 요청',
+                href: '/mypage/buying-estimates',
+            },
+            {
+                key: 'buying-proposals',
+                label: '받은 제안',
+                href: '/mypage/buying-proposals',
+            },
+        ],
+
+        sources: [],
+    },
+
+    'selling-estimates': {
+        title: '판매 협의',
+        kicker: 'SELLING',
+        group: 'selling-negotiation',
+        sellerOnly: true,
+
+        tabs: [
+            {
+                key: 'selling-estimates',
+                label: '받은 견적 요청',
+                href: '/mypage/selling-estimates',
+            },
+            {
+                key: 'selling-proposals',
+                label: '보낸 제안',
+                href: '/mypage/selling-proposals',
+            },
+        ],
+
+        empty: [
+            '받은 견적 요청이 없습니다.',
+            '구매자가 상품에 견적을 요청하면 이곳에서 확인할 수 있습니다.',
+        ],
+
+        sources: [
+            {
+                key: 'receivedEstimates',
+                label: '받은 견적 요청',
+                endpoint: '/api/v1/estimates/received',
+                sellerOnly: true,
+            },
+        ],
+    },
+
+    'selling-proposals': {
+        title: '판매 협의',
+        kicker: 'SELLING',
+        group: 'selling-negotiation',
+        sellerOnly: true,
+
+        tabs: [
+            {
+                key: 'selling-estimates',
+                label: '받은 견적 요청',
+                href: '/mypage/selling-estimates',
+            },
+            {
+                key: 'selling-proposals',
+                label: '보낸 제안',
+                href: '/mypage/selling-proposals',
+            },
+        ],
+
+        sources: [],
     },
     offers: {
         title: '제안 관리',
@@ -475,8 +590,8 @@ function adaptEstimate(record, direction) {
             labeledDate('행사', value(record, 'eventDateTime')),
             labeledDate('요청', value(record, 'createdAt')),
         ),
-        id ? `/estimates/${encodeURIComponent(id)}` : '/estimates',
-        '견적 보기',
+        id ? `/estimates/${encodeURIComponent(id)}` : '',
+        '요청 상세',
         value(record, 'createdAt', 'eventDateTime'),
     );
 }

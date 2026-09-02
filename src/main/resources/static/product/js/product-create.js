@@ -11,6 +11,11 @@ const imagePreview = document.getElementById('imagePreview');
 const storeAddressInput =
     document.getElementById('storeAddress');
 
+const storeAddressDetailInput =
+    document.getElementById(
+        'storeAddressDetail'
+    );
+
 const storeAddressSearchButton =
     document.getElementById('storeAddressSearchButton');
 
@@ -66,7 +71,10 @@ function openStoreAddressSearch() {
             storeAddressInput.value =
                 selectedAddress;
 
-            storeAddressInput.focus();
+// 새 가게 주소를 선택하면 이전 상세 주소를
+// 다른 장소의 정보로 남기지 않는다.
+            storeAddressDetailInput.value = '';
+            storeAddressDetailInput.focus();
         }
     }).open();
 }
@@ -90,6 +98,7 @@ form.addEventListener('submit', async (event) => {
         servingPrice: Number(document.getElementById('servingPrice').value),
         deliveryRadiusKm: Number(document.getElementById('deliveryRadiusKm').value),
         storeAddress: document.getElementById('storeAddress').value,
+        storeAddressDetail: document.getElementById('storeAddressDetail').value,
         category: document.getElementById('category').value,
         description: document.getElementById('description').value,
         dayOfWeek: document.getElementById('dayOfWeek').value || null,
@@ -124,10 +133,11 @@ form.addEventListener('submit', async (event) => {
             throw new Error(data?.message ?? '판매 조건 등록에 실패했습니다.');
         }
 
-        resultBox.textContent = JSON.stringify(data, null, 2);
-        showMessage('판매 조건이 성공적으로 등록되었습니다.', true);
-        form.reset();
-        updatePreview(null);
+        resultBox.textContent =
+            JSON.stringify(data, null, 2);
+
+        window.location.href =
+            `/product/detail?id=${encodeURIComponent(data.id)}`;
     } catch (error) {
         resultBox.textContent = error.message;
         showMessage(error.message, false);

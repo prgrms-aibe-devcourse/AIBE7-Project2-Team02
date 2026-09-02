@@ -10,7 +10,14 @@ const minHeadcountInput = document.getElementById('minHeadcount');
 const maxHeadcountInput = document.getElementById('maxHeadcount');
 const servingPriceInput = document.getElementById('servingPrice');
 const deliveryRadiusKmInput = document.getElementById('deliveryRadiusKm');
-const storeAddressInput = document.getElementById('storeAddress');
+const storeAddressInput =
+    document.getElementById('storeAddress');
+
+const storeAddressDetailInput =
+    document.getElementById(
+        'storeAddressDetail'
+    );
+
 const storeAddressSearchButton =
     document.getElementById('storeAddressSearchButton');
 const categoryInput = document.getElementById('category');
@@ -27,7 +34,8 @@ const resultBox = document.getElementById('result');
 
 const formFields = [
     productNameInput, minHeadcountInput, maxHeadcountInput, servingPriceInput,
-    deliveryRadiusKmInput, storeAddressInput, categoryInput, descriptionInput,
+    deliveryRadiusKmInput, storeAddressInput, storeAddressDetailInput,
+    categoryInput, descriptionInput,
     dayOfWeekInput, unavailableDatesInput, imageFileInput
 ];
 
@@ -95,7 +103,9 @@ function openStoreAddressSearch() {
             storeAddressInput.value =
                 selectedAddress;
 
-            storeAddressInput.focus();
+// 주소를 재검색하면 기존 상세 주소를 초기화한다.
+            storeAddressDetailInput.value = '';
+            storeAddressDetailInput.focus();
         }
     }).open();
 }
@@ -140,6 +150,8 @@ async function loadProductData(id) {
         servingPriceInput.value = product.servingPrice ?? '';
         deliveryRadiusKmInput.value = product.deliveryRadiusKm;
         storeAddressInput.value = product.storeAddress;
+        storeAddressDetailInput.value =
+            product.storeAddressDetail ?? '';
         categoryInput.value = product.category;
         descriptionInput.value = product.description ?? '';
         dayOfWeekInput.value = product.dayOfWeek ?? '';
@@ -186,6 +198,7 @@ updateForm.addEventListener('submit', async (event) => {
         servingPrice: Number(servingPriceInput.value),
         deliveryRadiusKm: Number(deliveryRadiusKmInput.value),
         storeAddress: storeAddressInput.value,
+        storeAddressDetail: storeAddressDetailInput.value,
         category: categoryInput.value,
         description: descriptionInput.value,
         dayOfWeek: dayOfWeekInput.value || null,

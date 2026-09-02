@@ -143,6 +143,7 @@ class OrderRequestServiceTest {
                         BigDecimal.valueOf(20000),
                         "한식",
                         "기존 주소",
+                        "101동 202호",
                         37.5000,
                         127.0000
                 );

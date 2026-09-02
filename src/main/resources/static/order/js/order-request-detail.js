@@ -102,6 +102,11 @@ function renderOrder(order) {
     );
 
     setField(
+        'deliveryAddressDetail',
+        order.deliveryAddressDetail || '-'
+    );
+
+    setField(
         'description',
         order.description
         || '등록된 상세 요청사항이 없습니다.'
