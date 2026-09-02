@@ -1,7 +1,9 @@
 package org.example.matcheat.domain.chat.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.example.matcheat.domain.chat.dto.ChatRoomCreateRequest;
+import org.example.matcheat.domain.chat.dto.ChatRoomProductUpdateRequest;
 import org.example.matcheat.domain.chat.dto.ChatRoomResponse;
 import org.example.matcheat.domain.chat.service.ChatService;
 import org.springframework.http.HttpStatus;
@@ -44,6 +46,17 @@ public class ChatController {
 	@GetMapping
 	public ResponseEntity<List<ChatRoomResponse>> getChatRooms(@AuthenticationPrincipal Jwt jwt) {
 		return ResponseEntity.ok(chatService.getChatRooms(Long.valueOf(jwt.getSubject())));
+	}
+
+	@Operation(summary = "채팅방 연결 상품 전환", description = "이 방이 가리키는 상품을 바꾼다. 참여자만 가능하며, 클라이언트에서 경고/확인을 거친 뒤 호출해야 한다.")
+	@PatchMapping("/{chatRoomId}/product")
+	public ResponseEntity<ChatRoomResponse> changeProduct(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable Long chatRoomId,
+			@RequestBody ChatRoomProductUpdateRequest request) {
+		Long currentUserId = Long.valueOf(jwt.getSubject());
+		ChatRoomResponse response = chatService.changeChatRoomProduct(chatRoomId, currentUserId, request.getProductId());
+		return ResponseEntity.ok(response);
 	}
 
 }

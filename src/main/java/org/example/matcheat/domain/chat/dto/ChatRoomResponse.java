@@ -13,8 +13,9 @@ public class ChatRoomResponse {
 	private Long chatRoomId;
 	private Long proposalId;
 	private Long quoteId;
+	private Long productId; // [추가]
 	private ChatRoom.OriginType originType;
-	private ChatRoom.Status status; // 👈 1. status 필드 추가
+	private ChatRoom.Status status;
 	private Long buyerId;
 	private Long sellerId;
 	private LocalDateTime createdAt;
@@ -24,8 +25,9 @@ public class ChatRoomResponse {
 				.chatRoomId(chatRoom.getId())
 				.proposalId(chatRoom.getProposalId())
 				.quoteId(chatRoom.getQuoteId())
+				.productId(chatRoom.getProductId()) // [추가]
 				.originType(chatRoom.getOriginType())
-				.status(chatRoom.getStatus()) // 👈 2. status 값 매핑 추가
+				.status(chatRoom.getStatus())
 				.buyerId(chatRoom.getBuyerId())
 				.sellerId(chatRoom.getSellerId())
 				.createdAt(chatRoom.getCreatedAt())

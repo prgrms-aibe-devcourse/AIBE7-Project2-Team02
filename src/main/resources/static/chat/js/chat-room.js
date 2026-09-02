@@ -131,8 +131,10 @@ const state = {
     rooms: [],
     selectedRoomId: null,
     selectedRoom: null,
-    negotiation: null,
-    quote: null,
+    sellerProducts: [],   // 추가: 이 채팅방 판매자의 상품 목록
+    selectedProductId: null, // 추가
+    negotiation: null,    // 추가: QuoteNegotiation
+    quote: null,          // LOCKED 이후에만 채워짐 (공식 Quote)
     stompClient: null,
     subscription: null,
     wsConnected: false,
@@ -255,7 +257,9 @@ async function selectRoom(roomId) {
 
         subscribeRoom(roomId);
 
-        await Promise.all([loadNegotiation(), loadQuote(room.quoteId)]);
+        // [교체] 상품 목록 + 협상 견적서를 함께 로딩
+        await loadSellerProducts(room.sellerId);
+        await loadNegotiation(roomId);
     } catch (e) {
         showToast(e.message || '채팅방을 불러오지 못했습니다.', true);
     }
@@ -438,31 +442,121 @@ function subscribeRoom(roomId) {
         appendMessage(message, true);
     });
 }
+//
+//
+//
+
+// [확인 필요] 실제 상품 검색 API의 셀러 필터 파라미터명을 몰라서 sellerId로 가정함.
+// ProductController 스펙 확인되면 이 함수 하나만 고치면 된다.
+async function loadSellerProducts(sellerId) {
+    try {
+        const products = await api(`/products/search?sellerId=${sellerId}`);
+        state.sellerProducts = products || [];
+    } catch (e) {
+        state.sellerProducts = [];
+    }
+    populateProductSelect();
+}
+
+function populateProductSelect() {
+    const select = el('quoteProductSelect');
+    select.innerHTML = '<option value="">상품 선택 안 함</option>';
+    state.sellerProducts.forEach((p) => {
+        const option = document.createElement('option');
+        option.value = String(p.id);
+        option.textContent = p.productName;
+        select.appendChild(option);
+    });
+
+    const currentProductId = state.selectedRoom?.productId ?? null;
+    select.value = currentProductId ? String(currentProductId) : '';
+    updateProductNameDisplay(currentProductId);
+}
+
+function updateProductNameDisplay(productId) {
+    const product = state.sellerProducts.find((p) => p.id === Number(productId));
+    el('quoteProductName').textContent = product ? product.productName : '상품을 선택하세요';
+}
+
+async function onProductSelectChange(event) {
+    const newProductId = event.target.value ? Number(event.target.value) : null;
+    updateProductNameDisplay(newProductId);
+    if (!newProductId) return;
+
+    try {
+        const updated = await api(`/chat-rooms/${state.selectedRoomId}/product`, {
+            method: 'PATCH',
+            body: JSON.stringify({ productId: newProductId }),
+        });
+        state.selectedRoom = updated;
+        showToast('연결된 상품을 변경했습니다.');
+    } catch (e) {
+        showToast(e.message || '상품 변경에 실패했습니다.', true);
+    }
+}
 
 // ------------------------------------------------------------------
-// 1차 협상 견적 (QuoteNegotiation)
+// 공식 견적서 (Quote)
 // ------------------------------------------------------------------
+
+async function loadNegotiation(chatRoomId) {
+    try {
+        state.negotiation = await api(`/chat-rooms/${chatRoomId}/quote-negotiations`);
+    } catch (e) {
+        state.negotiation = null; // 아직 생성 안 됨
+    }
+
+    if (state.negotiation?.status === 'LOCKED' && state.negotiation.resultingQuoteId) {
+        try {
+            state.quote = await api(`/quotes/${state.negotiation.resultingQuoteId}`);
+        } catch (e) {
+            state.quote = null;
+        }
+    } else {
+        state.quote = null;
+    }
+
+    renderQuoteCard();
+}
+
+async function createNegotiation() {
+    try {
+        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations`, {
+            method: 'POST',
+            body: JSON.stringify({}),
+        });
+        showToast('1차 견적서를 생성했습니다.');
+        renderQuoteCard();
+    } catch (e) {
+        showToast(e.message || '1차 견적서 생성에 실패했습니다.', true);
+    }
+}
+
+function fillFormFromNegotiation(n) {
+    el('quoteQuantity').value = n.quantity ?? '';
+    el('quoteUnitPrice').value = n.unitPrice ?? '';
+    el('quoteTotalDisplay').textContent = n.totalAmount != null ? won(n.totalAmount) : '-';
+
+    const notesEl = el('quoteDetailNotes');
+    if (n.additionalNotes) {
+        notesEl.hidden = false;
+        notesEl.textContent = n.additionalNotes;
+    } else {
+        notesEl.hidden = true;
+    }
+}
 
 const negotiationStatusText = {
     NEGOTIATING: '협상 중',
     AI_SUMMARIZED: 'AI 요약 완료',
-    LOCKED: '확정됨',
+    LOCKED: '최종 확정',
 };
 
-async function loadNegotiation() {
-    try {
-        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations`);
-    } catch (e) {
-        state.negotiation = e.status === 404 ? null : state.negotiation;
-    }
-    renderNegotiation();
-}
-
-function renderNegotiation() {
+function renderQuoteCard() {
     const n = state.negotiation;
-    const badge = el('negotiationStatusBadge');
-    const form = el('negotiationForm');
-    const empty = el('negotiationEmpty');
+    const empty = el('quoteEmpty');
+    const form = el('quoteComposeForm');
+    const badge = el('quoteStatusBadge');
 
     if (!n) {
         empty.hidden = false;
@@ -475,216 +569,106 @@ function renderNegotiation() {
     form.hidden = false;
     badge.hidden = false;
     badge.textContent = negotiationStatusText[n.status] || n.status;
-    badge.className = `chat-negotiation-status status-${n.status.toLowerCase()}`;
+    badge.className = `chat-quote-status-badge status-${n.status.toLowerCase()}`;
 
-    el('negoQuantity').value = n.quantity ?? '';
-    el('negoUnitPrice').value = n.unitPrice ?? '';
-    el('negoDeliveryFee').value = n.deliveryFee ?? '';
-    el('negoTotalAmount').textContent = won(n.totalAmount);
+    fillFormFromNegotiation(n);
 
-    const notesEl = el('negoAdditionalNotes');
-    if (n.additionalNotes) {
-        notesEl.hidden = false;
-        notesEl.textContent = `AI 요약: ${n.additionalNotes}`;
-    } else {
-        notesEl.hidden = true;
+    const readOnly = n.status === 'LOCKED';
+    ['quoteQuantity', 'quoteUnitPrice', 'quoteEventDateTime', 'quoteBudgetType',
+        'quoteBudget', 'quoteDeliveryAddress', 'quoteDescription', 'quoteProductSelect']
+        .forEach((id) => { el(id).disabled = readOnly; });
+
+    renderQuoteActions(n);
+}
+
+function collectNegotiationEditPayload() {
+    // 기존 sendNewQuote와 동일하게, 구조화 안 되는 항목은 additionalNotes로 합친다.
+    const eventDateTime = el('quoteEventDateTime').value;
+    const budgetType = el('quoteBudgetType').value;
+    const budget = el('quoteBudget').value;
+    const deliveryAddress = el('quoteDeliveryAddress').value.trim();
+    const description = el('quoteDescription').value.trim();
+
+    const notesParts = [];
+    if (eventDateTime) notesParts.push(`행사/이용 일시: ${eventDateTime}`);
+    if (budgetType) notesParts.push(`예산 유형: ${budgetType === 'PER_PERSON' ? '1인당' : '총액'}`);
+    if (budget) notesParts.push(`예산: ${won(Number(budget))}`);
+    if (deliveryAddress) notesParts.push(`배송(행사) 주소: ${deliveryAddress}`);
+    if (description) notesParts.push(`상세 설명: ${description}`);
+
+    return {
+        quantity: Number(el('quoteQuantity').value) || null,
+        unitPrice: Number(el('quoteUnitPrice').value) || null,
+        // [확인 필요] 이 폼엔 배송비 전용 입력칸이 없어서, 기존 협상 값을 그대로 유지한다.
+        deliveryFee: state.negotiation?.deliveryFee ?? null,
+    };
+}
+
+function renderQuoteActions(n) {
+    const area = el('quoteActionArea');
+    area.innerHTML = '';
+
+    if (n.status === 'NEGOTIATING' || n.status === 'AI_SUMMARIZED') {
+        area.appendChild(makeButton('수정하기', 'chat-btn-ghost', saveNegotiationEdit));
+        area.appendChild(makeButton('최종결정', 'chat-btn-primary', finalizeNegotiation));
+        area.appendChild(makeButton('AI 요약', 'chat-btn-ghost', runAiSummary, n.aiSummaryUsed));
+        return;
     }
 
-    const editable = n.status === 'NEGOTIATING' || n.status === 'AI_SUMMARIZED';
-    ['negoQuantity', 'negoUnitPrice', 'negoDeliveryFee'].forEach((id) => {
-        el(id).disabled = !editable;
-    });
-
-    el('negotiationSaveButton').hidden = !editable;
-    el('negotiationAiButton').hidden = !(n.status === 'NEGOTIATING' && !n.aiSummaryUsed);
-    el('negotiationLockButton').hidden = n.status !== 'AI_SUMMARIZED';
-
-    const hint = el('negotiationHint');
     if (n.status === 'LOCKED') {
-        hint.textContent = '협상이 확정되어 더 이상 수정할 수 없습니다. 아래 공식 견적서를 확인하세요.';
-    } else if (n.status === 'AI_SUMMARIZED') {
-        hint.textContent = 'AI 요약 이후 마지막 한 번만 수정할 수 있습니다.';
-    } else {
-        hint.textContent = '';
+        if (state.quote && currentUserId === state.quote.buyerId) {
+            area.appendChild(makeButton('결제하기', 'chat-btn-primary', payForQuote));
+        }
+        area.appendChild(makeButton('철회하기', 'chat-btn-danger', withdrawQuote));
     }
 }
 
-async function startNegotiation() {
-    try {
-        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations`, {
-            method: 'POST',
-            body: JSON.stringify({}),
-        });
-        renderNegotiation();
-    } catch (e) {
-        showToast(e.message || '협상 견적서를 시작하지 못했습니다.', true);
-    }
+function makeButton(label, className, handler, disabled = false) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `chat-btn ${className}`;
+    button.textContent = label;
+    button.disabled = disabled;
+    button.addEventListener('click', handler);
+    return button;
 }
 
-async function saveNegotiation() {
-    const body = JSON.stringify({
-        quantity: Number(el('negoQuantity').value),
-        unitPrice: Number(el('negoUnitPrice').value),
-        deliveryFee: el('negoDeliveryFee').value ? Number(el('negoDeliveryFee').value) : 0,
-    });
-
+async function saveNegotiationEdit() {
     const path = state.negotiation.status === 'AI_SUMMARIZED'
         ? `/chat-rooms/${state.selectedRoomId}/quote-negotiations/final`
         : `/chat-rooms/${state.selectedRoomId}/quote-negotiations`;
 
     try {
-        state.negotiation = await api(path, { method: 'PUT', body });
-        renderNegotiation();
-        showToast('협상 견적서를 저장했습니다.');
+        state.negotiation = await api(path, { method: 'PUT', body: JSON.stringify(collectNegotiationEditPayload()) });
+        renderQuoteCard();
+        showToast('견적을 수정했습니다.');
     } catch (e) {
-        showToast(e.message || '저장에 실패했습니다.', true);
+        showToast(e.message || '수정에 실패했습니다.', true);
     }
 }
 
 async function runAiSummary() {
+    if (!confirm('AI 요약은 채팅방당 1회만 가능하고, 실제 AI 호출 비용이 발생합니다. 계속할까요?')) return;
     try {
-        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/ai-summary`, {
-            method: 'POST',
-        });
-        renderNegotiation();
-        showToast('AI 요약을 반영했습니다.');
+        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/ai-summary`, { method: 'POST' });
+        renderQuoteCard();
+        showToast('AI 요약이 완료됐습니다. 필요하면 마지막으로 한 번 더 수정할 수 있어요.');
     } catch (e) {
         showToast(e.message || 'AI 요약에 실패했습니다.', true);
     }
 }
 
-async function lockNegotiation() {
-    if (!window.confirm('협상을 최종 확정하면 더 이상 수정할 수 없습니다. 계속할까요?')) return;
+async function finalizeNegotiation() {
+    if (!confirm('최종결정하면 더 이상 수정할 수 없습니다. 계속할까요?')) return;
     try {
-        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/lock`, {
-            method: 'POST',
-        });
-        renderNegotiation();
-        showToast('협상을 확정하고 공식 견적서를 발행했습니다.');
-
-        const room = await api(`/chat-rooms/${state.selectedRoomId}`);
-        state.selectedRoom = room;
-        await loadQuote(room.quoteId);
-    } catch (e) {
-        showToast(e.message || '확정에 실패했습니다.', true);
-    }
-}
-
-// ------------------------------------------------------------------
-// 공식 견적서 (Quote)
-// ------------------------------------------------------------------
-
-const quoteStatusText = {
-    SENT: '발송됨',
-    ACCEPTED: '수락됨',
-    REJECTED: '거절됨',
-    WITHDRAWN: '철회됨',
-};
-
-async function loadQuote(quoteId) {
-    if (!quoteId) {
-        state.quote = null;
-        renderQuote();
-        return;
-    }
-    try {
-        state.quote = await api(`/quotes/${quoteId}`);
-    } catch (e) {
-        state.quote = null;
-    }
-    renderQuote();
-}
-
-function renderQuote() {
-    const q = state.quote;
-    const empty = el('quoteEmpty');
-    const detail = el('quoteDetail');
-    const badge = el('quoteStatusBadge');
-    const composeForm = el('quoteComposeForm');
-
-    if (!q) {
-        empty.hidden = false;
-        detail.hidden = true;
-        badge.hidden = true;
-        composeForm.hidden = true;
-        return;
-    }
-
-    empty.hidden = true;
-    composeForm.hidden = true;
-    detail.hidden = false;
-    badge.hidden = false;
-    badge.textContent = quoteStatusText[q.status] || q.status;
-    badge.className = `chat-quote-status-badge status-${q.status.toLowerCase()}`;
-
-    el('quoteDetailQuantity').textContent = `${q.quantity}명`;
-    el('quoteDetailUnitPrice').textContent = won(q.unitPrice);
-    el('quoteDetailDeliveryFee').textContent = won(q.deliveryFee);
-    el('quoteDetailTotal').textContent = won(q.totalAmount);
-
-    renderQuoteActions(q);
-}
-
-function renderQuoteActions(q) {
-    const area = el('quoteActionArea');
-    area.innerHTML = '';
-
-    const senderId = q.senderRole === 'BUYER' ? q.buyerId : q.sellerId;
-    const isMine = senderId === currentUserId;
-
-    if (q.status === 'SENT') {
-        if (isMine) {
-            area.appendChild(makeButton('제안 철회', 'chat-btn-danger', () => updateQuoteStatus('WITHDRAWN')));
-        } else {
-            area.appendChild(makeButton('수락', 'chat-btn-primary', () => updateQuoteStatus('ACCEPTED')));
-            area.appendChild(makeButton('거절', 'chat-btn-danger', () => updateQuoteStatus('REJECTED')));
+        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/lock`, { method: 'POST' });
+        if (state.negotiation.resultingQuoteId) {
+            state.quote = await api(`/quotes/${state.negotiation.resultingQuoteId}`);
         }
-        return;
-    }
-
-    if (q.status === 'ACCEPTED') {
-        if (currentUserId === q.buyerId) {
-            area.appendChild(makeButton('결제하기', 'chat-btn-primary', payForQuote));
-        } else {
-            const note = document.createElement('p');
-            note.className = 'chat-quote-hint';
-            note.textContent = '구매자의 결제를 기다리는 중입니다.';
-            area.appendChild(note);
-        }
-        return;
-    }
-
-    const note = document.createElement('p');
-    note.className = 'chat-quote-hint';
-    note.textContent = q.status === 'REJECTED' ? '견적이 거절되어 대화가 종료되었습니다.' : '견적이 철회되어 대화가 종료되었습니다.';
-    area.appendChild(note);
-}
-
-function makeButton(label, className, handler) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `chat-btn ${className}`;
-    button.textContent = label;
-    button.addEventListener('click', handler);
-    return button;
-}
-
-async function updateQuoteStatus(status) {
-    try {
-        state.quote = await api(`/quotes/${state.quote.quoteId}/status`, {
-            method: 'PATCH',
-            body: JSON.stringify({ status }),
-        });
-        renderQuote();
-        showToast('견적 상태를 변경했습니다.');
-
-        if (status === 'REJECTED' || status === 'WITHDRAWN') {
-            const room = await api(`/chat-rooms/${state.selectedRoomId}`);
-            state.selectedRoom = room;
-            renderRoomHeader(room);
-        }
+        renderQuoteCard();
+        showToast('최종 확정되었습니다.');
     } catch (e) {
-        showToast(e.message || '상태 변경에 실패했습니다.', true);
+        showToast(e.message || '최종결정에 실패했습니다.', true);
     }
 }
 
@@ -697,22 +681,18 @@ async function payForQuote() {
     }
 }
 
-async function sendNewQuote(event) {
-    event.preventDefault();
-    const body = JSON.stringify({
-        quantity: Number(el('quoteQuantity').value),
-        unitPrice: Number(el('quoteUnitPrice').value),
-        deliveryFee: el('quoteDeliveryFee').value ? Number(el('quoteDeliveryFee').value) : 0,
-    });
-
+// [주의] 백엔드가 ACCEPTED 이후 WITHDRAWN 전이를 아직 지원하지 않습니다 (409 예상).
+// 지원 여부를 정하기 전까지는 에러 토스트만 뜰 겁니다.
+async function withdrawQuote() {
     try {
-        const quote = await api(`/quotes/chat-rooms/${state.selectedRoomId}`, { method: 'POST', body });
-        state.quote = quote;
-        if (state.selectedRoom) state.selectedRoom.quoteId = quote.quoteId;
-        renderQuote();
-        showToast('견적서를 보냈습니다.');
+        await api(`/quotes/${state.quote.quoteId}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: 'WITHDRAWN' }),
+        });
+        showToast('견적을 철회했습니다.');
+        await loadNegotiation(state.selectedRoomId);
     } catch (e) {
-        showToast(e.message || '견적서 발송에 실패했습니다.', true);
+        showToast(e.message || '철회에 실패했습니다. (백엔드 미지원일 수 있음)', true);
     }
 }
 
@@ -736,23 +716,9 @@ function bindEvents() {
         event.target.value = '';
     });
 
-    el('negotiationStartButton').addEventListener('click', startNegotiation);
-    el('negotiationForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        saveNegotiation();
-    });
-    el('negotiationAiButton').addEventListener('click', runAiSummary);
-    el('negotiationLockButton').addEventListener('click', lockNegotiation);
-
-    el('quoteComposeToggle').addEventListener('click', () => {
-        el('quoteEmpty').hidden = true;
-        el('quoteComposeForm').hidden = false;
-    });
-    el('quoteComposeCancel').addEventListener('click', () => {
-        el('quoteComposeForm').hidden = true;
-        el('quoteEmpty').hidden = false;
-    });
-    el('quoteComposeForm').addEventListener('submit', sendNewQuote);
+    el('quoteProductSelect').addEventListener('change', onProductSelectChange);
+    el('quoteComposeToggle').addEventListener('click', createNegotiation);
+    el('quoteComposeForm').addEventListener('submit', (e) => e.preventDefault()); // 버튼들이 각자 처리하므로 기본 제출 막기
 
     el('newChatToggle').addEventListener('click', () => {
         el('newChatForm').hidden = !el('newChatForm').hidden;
@@ -764,6 +730,11 @@ function bindEvents() {
     el('newChatOriginType').addEventListener('change', (event) => {
         el('newChatProposalIdField').hidden = event.target.value !== 'PROPOSAL';
     });
+    el('newChatMode').addEventListener('change', (event) => {
+        const isProduct = event.target.value === 'PRODUCT_ID';
+        el('newChatSellerIdField').hidden = isProduct;
+        el('newChatProductIdField').hidden = !isProduct;
+    });
     el('newChatForm').addEventListener('submit', createNewChatRoom);
 }
 
@@ -774,20 +745,34 @@ function bindEvents() {
 async function createNewChatRoom(event) {
     event.preventDefault();
 
+    const mode = el('newChatMode').value;
     const originType = el('newChatOriginType').value;
+    const productIdValue = el('newChatProductId').value;
+
     const body = {
-        sellerId: Number(el('newChatSellerId').value),
         originType,
         proposalId: originType === 'PROPOSAL' && el('newChatProposalId').value
             ? Number(el('newChatProposalId').value)
             : null,
     };
 
+    // 2.1: 상품 ID로 "바로 채팅하기" — 서버가 상품 등록자를 판매자로 자동 지정한다.
+    if (mode === 'PRODUCT_ID') {
+        body.productId = Number(productIdValue);
+    } else {
+        body.sellerId = Number(el('newChatSellerId').value);
+    }
+
     try {
         const room = await api('/chat-rooms', { method: 'POST', body: JSON.stringify(body) });
+
+        // 이 방이 어떤 상품에서 시작됐는지 캐싱해서, 2.2 미리보기가 새로고침 후에도 뜨게 한다.
+        if (mode === 'PRODUCT_ID' && productIdValue)
+
         el('newChatForm').hidden = true;
         el('newChatForm').reset();
         el('newChatProposalIdField').hidden = true;
+        el('newChatProductIdField').hidden = true;
         showToast('채팅방을 개설했습니다.');
 
         await loadRoomList();

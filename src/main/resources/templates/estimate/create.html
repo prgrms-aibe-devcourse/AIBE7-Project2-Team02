@@ -16,9 +16,11 @@
         .btn { padding: 10px 14px; border-radius: 10px; border: 0; cursor: pointer; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
         .btn-primary { background: #2563eb; color: #fff; }
         .btn-secondary { background: #e2e8f0; color: #0f172a; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 12px; overflow: auto; }
         .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
         .notice { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
+        .success { background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
     </style>
 </head>
 <body>
@@ -34,6 +36,11 @@
 
         <div id="missingSellerNotice" class="notice">
             상품 정보가 없습니다. 상품 상세 페이지에서 "견적 요청하기" 버튼으로 들어와주세요.
+        </div>
+
+        <!-- [추가] 제출 성공 안내 -->
+        <div id="successNotice" class="success">
+            견적 요청이 저장됐습니다. 아래 버튼으로 채팅방에 들어가 판매자와 바로 대화를 이어갈 수 있습니다.
         </div>
 
         <form id="estimateForm">
@@ -84,8 +91,12 @@
             </div>
 
             <div class="actions">
-                <button type="submit" class="btn btn-primary">견적 요청 보내기</button>
+                <button type="submit" id="submitButton" class="btn btn-primary">견적 요청 보내기</button>
                 <a class="btn btn-secondary" href="/estimates">취소</a>
+                <!-- [추가] 채팅방 바로가기 - 견적+채팅방이 만들어지기 전엔 비활성 -->
+                <a id="goToChatButton" class="btn btn-primary" style="display:none;" href="#">
+                    💬 채팅방으로 이동
+                </a>
             </div>
         </form>
     </div>
@@ -100,13 +111,15 @@
     const estimateForm = document.getElementById("estimateForm");
     const result = document.getElementById("result");
     const missingSellerNotice = document.getElementById("missingSellerNotice");
+    const successNotice = document.getElementById("successNotice"); // [추가]
+    const submitButton = document.getElementById("submitButton");    // [추가]
+    const goToChatButton = document.getElementById("goToChatButton"); // [추가]
 
     if (readCurrentUserId() === null) {
         const redirect = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.href = `/login?redirect=${redirect}`;
     }
 
-    // 상품 상세 페이지에서 넘어온 값. 화면에는 표시하지 않고 폼 제출에만 사용한다.
     const params = new URLSearchParams(window.location.search);
     const productId = params.get("productId") ? Number(params.get("productId")) : null;
     const itemName = params.get("itemName");
@@ -118,6 +131,39 @@
 
     if (itemName) {
         document.getElementById("itemName").value = itemName;
+    }
+
+    // [추가] estimate의 예산 입력을 Quote의 unitPrice로 환산한다.
+    // - PER_PERSON: budget을 그대로 1인 단가로 사용
+    // - TOTAL: budget / quantity로 역산 (반올림)
+    // 이 변환 규칙은 가정일 뿐이니, 기획 의도와 다르면 이 함수만 바꾸면 된다.
+    function estimateBudgetToUnitPrice(budget, budgetType, quantity) {
+        if (budgetType === "PER_PERSON") {
+            return Math.round(budget);
+        }
+        return Math.round(budget / quantity);
+    }
+
+    // [추가] estimate 저장 성공 이후, 우리 Quote+ChatRoom을 자동으로 만드는 다리 역할.
+    // estimate 도메인 서버 코드는 건드리지 않고 프론트에서만 연결한다.
+    async function createLinkedQuoteAndChat(requestData) {
+        const unitPrice = estimateBudgetToUnitPrice(requestData.budget, requestData.budgetType, requestData.quantity);
+
+        const response = await authFetch(`/api/v1/quotes/direct?productId=${requestData.productId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                quantity: requestData.quantity,
+                unitPrice: unitPrice,
+                deliveryFee: null // estimate 폼에 배송비 입력이 없어 0으로 처리됨
+            })
+        });
+
+        const data = await readApiBody(response);
+        if (!response.ok) {
+            throw new Error(data?.message ?? "채팅방 생성에 실패했습니다.");
+        }
+        return data; // QuoteResponse (chatRoomId 포함)
     }
 
     estimateForm.addEventListener("submit", async (event) => {
@@ -140,6 +186,9 @@
             estimateImage: document.getElementById("estimateImage").value || null
         };
 
+        submitButton.disabled = true;
+        submitButton.textContent = "저장 중...";
+
         try {
             result.textContent = "전송 중...";
             const response = await authFetch("/api/v1/estimates", {
@@ -153,10 +202,23 @@
                 throw new Error(data?.message ?? "견적 저장에 실패했습니다.");
             }
 
-            alert("견적 요청이 정상적으로 작성되었습니다.");
-            window.location.href = "/";
+            result.textContent = JSON.stringify(data, null, 2);
+            successNotice.style.display = "block";
+
+            // [추가] 견적 저장 성공 -> Quote+ChatRoom 자동 생성 시도 (1.1 -> 1.2 다리)
+            try {
+                const quote = await createLinkedQuoteAndChat(requestData);
+                goToChatButton.href = `/chat?roomId=${quote.chatRoomId}`;
+                goToChatButton.style.display = "inline-flex";
+            } catch (chatError) {
+                // 견적 요청 자체는 성공했으니 실패로 취급하지 않고, 버튼만 비활성 안내로 남긴다.
+                result.textContent += `\n\n[채팅방 자동 생성 실패] ${chatError.message}`;
+            }
         } catch (error) {
             result.textContent = error.message;
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "견적 요청 보내기";
         }
     });
 </script>
