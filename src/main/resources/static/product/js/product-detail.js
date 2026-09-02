@@ -12,6 +12,7 @@ const estimateButton = document.getElementById('estimateButton');
 const editButton = document.getElementById('editButton');
 const chatButton = document.getElementById('chatButton'); // [추가]
 const reviewsButton = document.getElementById('reviewsButton');
+const reportButton = document.getElementById('reportButton');
 
 const dayOfWeekMap = {
     MONDAY: '월요일',
@@ -150,6 +151,10 @@ async function loadDetail() {
         });
         estimateButton.href = `/estimates/new?${params.toString()}`;
         reviewsButton.href = `/reviews/by-product/${product.id}`;
+        reportButton.href = `/mypage/reports?${new URLSearchParams({
+            targetType: 'PRODUCT',
+            targetId: product.id,
+        })}`;
 
         // [수정] isOwnedProduct를 한 번만 호출해서 editButton/chatButton 둘 다에 사용
         const owned = await isOwnedProduct(product.id);

@@ -69,17 +69,17 @@ class AdminAccountRestControllerMvcTest {
         AdminAccountRepository.UserSummary changed = new AdminAccountRepository.UserSummary(
                 9L, "user@example.com", "사용자", UserRole.USER, UserStatus.SUSPENDED,
                 2, Instant.parse("2026-08-28T00:00:00Z"));
-        when(service.changeUserStatus(7L, 9L, UserStatus.SUSPENDED)).thenReturn(changed);
+        when(service.changeUserStatus(7L, 9L, UserStatus.SUSPENDED, "policy violation")).thenReturn(changed);
 
         mockMvc.perform(patch("/api/v1/admin/users/9/status")
                         .with(adminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"status\":\"SUSPENDED\"}"))
+                        .content("{\"status\":\"SUSPENDED\",\"reason\":\"policy violation\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(9))
                 .andExpect(jsonPath("$.status").value("SUSPENDED"));
 
-        verify(service).changeUserStatus(7L, 9L, UserStatus.SUSPENDED);
+        verify(service).changeUserStatus(7L, 9L, UserStatus.SUSPENDED, "policy violation");
     }
 
     @Test

@@ -34,6 +34,8 @@
 .admin-navigation a { padding: 12px 14px; border-left: 3px solid transparent; color: #607180; }
 .admin-navigation a:hover,
 .admin-navigation a[aria-current="page"] { border-left-color: var(--admin-copper); color: var(--admin-ink); background: rgba(255, 255, 255, .65); }
+.admin-nav-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 6px; padding: 0 5px; border-radius: 10px; background: var(--admin-copper); color: white; font-size: .65rem; font-weight: 900; }
+.admin-nav-badge[hidden] { display: none; }
 .admin-future { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--admin-line); color: #7a878f; font-size: .75rem; }
 .admin-future span { font-weight: 800; color: var(--admin-blue); }
 
@@ -86,12 +88,32 @@ th { color: #71808a; font-size: .7rem; letter-spacing: .06em; }
 .state-badge[data-state="REJECTED"] { background: #f3dfd7; color: #9c3e23; }
 .state-badge[data-state="WITHDRAWN"] { background: #e5e5e5; color: #666; }
 .state-badge[data-state="APPROVED"] { background: #dceadf; color: var(--admin-green); }
+.state-badge[data-state="IN_REVIEW"] { background: #dcebf2; color: var(--admin-blue); }
+.state-badge[data-state="RESOLVED"] { background: #dceadf; color: var(--admin-green); }
 
 .seller-list { display: grid; gap: 12px; }
 .seller-card { display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 20px; align-items: center; padding: 20px; border: 1px solid var(--admin-line); background: white; }
 .seller-card h3 { margin: 0 0 7px; }
 .seller-card p { margin: 3px 0; color: #6c7b84; font-size: .78rem; }
 .seller-actions { display: flex; gap: 7px; }
+.report-admin-list { display: grid; gap: 14px; }
+.admin-report-card { padding: 22px; border: 1px solid var(--admin-line); background: white; }
+.admin-report-card > div:first-child { display: flex; justify-content: space-between; gap: 18px; }
+.admin-report-card h3 { margin: 0 0 8px; }
+.admin-report-message { margin: 18px 0 8px; white-space: pre-wrap; color: #425766; line-height: 1.65; }
+.admin-report-meta { color: #7a8790; font-size: .72rem; }
+.admin-report-target { margin: 8px 0; color: var(--admin-copper); font-size: .75rem; font-weight: 800; }
+.admin-report-response { padding: 12px 14px; border-left: 3px solid var(--admin-green); background: #eef5ef; white-space: pre-wrap; }
+.admin-report-form { display: grid; grid-template-columns: 150px minmax(220px, 1fr) auto; gap: 8px; margin-top: 18px; }
+.admin-report-form select, .admin-report-form textarea { padding: 10px 12px; border: 1px solid var(--admin-line); background: white; color: var(--admin-ink); font: inherit; }
+.admin-report-form textarea { min-height: 72px; resize: vertical; }
+.admin-history-button { margin-top: 16px; background: var(--admin-blue); }
+.admin-report-history { display: grid; gap: 10px; margin: 14px 0 0; padding: 14px 14px 14px 34px; background: #f2f6f7; }
+.admin-report-history[hidden] { display: none; }
+.admin-report-history li { padding-left: 4px; }
+.admin-report-history strong, .admin-report-history span { display: block; }
+.admin-report-history span { margin-top: 3px; color: #71808a; font-size: .7rem; }
+.admin-report-history p { margin: 8px 0 0; white-space: pre-wrap; color: #4d606d; }
 .empty-table { padding: 50px 10px; text-align: center; color: #77858d; }
 .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 24px; }
 .pagination button[aria-current="page"] { background: var(--admin-copper); }
@@ -122,6 +144,7 @@ th { color: #71808a; font-size: .7rem; letter-spacing: .06em; }
     .metric-grid { grid-template-columns: 1fr; }
     .admin-filter { align-items: stretch; flex-direction: column; }
     .seller-card { grid-template-columns: 1fr; }
+    .admin-report-form { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) { .admin-loading span { animation: none; } }

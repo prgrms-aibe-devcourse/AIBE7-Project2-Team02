@@ -38,6 +38,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login",
                                 "/signup",
+                                "/suspended",
                                 "/mypage/**",
                                 "/requests/**",
                                 "/css/**",

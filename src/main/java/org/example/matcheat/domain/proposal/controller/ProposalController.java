@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.matcheat.domain.proposal.dto.ProposalCreateDTO;
 import org.example.matcheat.domain.proposal.dto.ProposalResponseDTO;
 import org.example.matcheat.domain.proposal.service.ProposalAccessService;
+import org.example.matcheat.domain.proposal.enums.ProposalStatus;
+import org.example.matcheat.global.dto.PageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -68,28 +70,36 @@ public class ProposalController {
      * 현재 구매자가 자신의 주문들에 받은 모든 제안을 조회한다.
      */
     @GetMapping("/proposals/received")
-    public ResponseEntity<List<ProposalResponseDTO>> findReceived(
-            @AuthenticationPrincipal Jwt jwt
+    public ResponseEntity<?> findReceived(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) ProposalStatus status
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
 
-        return ResponseEntity.ok(
-                proposalAccessService.findReceived(userId)
-        );
+        List<ProposalResponseDTO> values = proposalAccessService.findReceived(userId);
+        if (page == null && size == null && status == null) return ResponseEntity.ok(values);
+        return ResponseEntity.ok(PageResponse.from(values, page == null ? 0 : page, size == null ? 20 : size,
+                value -> status == null || status == value.getStatus()));
     }
 
     /**
      * 현재 판매자가 보낸 모든 제안을 조회한다.
      */
     @GetMapping("/proposals/sent")
-    public ResponseEntity<List<ProposalResponseDTO>> findSent(
-            @AuthenticationPrincipal Jwt jwt
+    public ResponseEntity<?> findSent(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) ProposalStatus status
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
 
-        return ResponseEntity.ok(
-                proposalAccessService.findSent(userId)
-        );
+        List<ProposalResponseDTO> values = proposalAccessService.findSent(userId);
+        if (page == null && size == null && status == null) return ResponseEntity.ok(values);
+        return ResponseEntity.ok(PageResponse.from(values, page == null ? 0 : page, size == null ? 20 : size,
+                value -> status == null || status == value.getStatus()));
     }
 
     /**

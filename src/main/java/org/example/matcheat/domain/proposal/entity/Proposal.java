@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
  * 판매자가 구매 주문에 보내는 최초 수주 제안 정보를 저장하는 엔티티이다.
  */
 @Entity
-@Table(name = "proposals")
+@Table(name = "proposals", indexes = {
+        @Index(name = "idx_proposal_seller_status_created", columnList = "seller_id,status,created_at"),
+        @Index(name = "idx_proposal_request_status_created", columnList = "request_id,status,created_at")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Proposal {

@@ -31,6 +31,7 @@
                 거래 내역
             </a>
             <a th:href="@{/chat}">채팅</a>
+            <a th:href="@{/mypage/reports}" data-view="reports">신고 및 문의</a>
         </nav>
     </aside>
 
@@ -115,6 +116,24 @@
                 </form>
             </section>
 
+            <section class="account-action-card" aria-labelledby="password-action-title">
+                <div><p class="action-index">03 / SECURITY</p><h2 id="password-action-title">비밀번호 변경</h2>
+                    <p>변경 후 현재 로그인 토큰은 즉시 만료됩니다.</p></div>
+                <form data-password-form novalidate>
+                    <label for="password-current">현재 비밀번호</label>
+                    <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required>
+                    <small data-field-error="currentPassword" aria-live="polite"></small>
+                    <label for="password-new">새 비밀번호</label>
+                    <input id="password-new" name="newPassword" type="password" autocomplete="new-password" required>
+                    <small data-field-error="newPassword" aria-live="polite"></small>
+                    <label for="password-confirm">새 비밀번호 확인</label>
+                    <input id="password-confirm" name="newPasswordConfirm" type="password" autocomplete="new-password" required>
+                    <small data-field-error="newPasswordConfirm" aria-live="polite"></small>
+                    <p class="action-message" data-form-message role="status"></p>
+                    <button type="submit">비밀번호 변경</button>
+                </form>
+            </section>
+
             <section class="account-action-card danger-card" aria-labelledby="withdraw-action-title">
                 <div>
                     <p class="action-index">03 / WITHDRAW</p>
@@ -134,6 +153,42 @@
                     <p class="action-message" data-form-message role="status"></p>
                     <button type="submit">회원 탈퇴</button>
                 </form>
+            </section>
+        </div>
+
+        <div class="report-workspace" data-report-panel hidden>
+            <section class="report-compose" aria-labelledby="report-compose-title">
+                <div>
+                    <p class="action-index">DIRECT TO ADMIN</p>
+                    <h2 id="report-compose-title">관리자에게 알리기</h2>
+                    <p>서비스 이용 중 확인이 필요한 내용을 작성하면 관리자 신고함으로 전달됩니다.</p>
+                </div>
+                <form data-report-form novalidate>
+                    <p class="report-context" data-report-context hidden></p>
+                    <label for="report-title">제목</label>
+                    <input id="report-title" name="title" maxlength="100" required>
+                    <small data-field-error="title" aria-live="polite"></small>
+                    <label for="report-message">내용</label>
+                    <textarea id="report-message" name="message" maxlength="2000" required></textarea>
+                    <small data-field-error="message" aria-live="polite"></small>
+                    <label for="report-evidence">증거 이미지 (선택, 최대 3개)</label>
+                    <input id="report-evidence" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+                    <p class="action-message" data-form-message role="status"></p>
+                    <button type="submit">관리자에게 보내기</button>
+                </form>
+            </section>
+            <section class="report-history" aria-labelledby="report-history-title" hidden>
+                <div class="report-section-heading">
+                    <div><p class="action-index">HISTORY</p><h2 id="report-history-title">내 신고 내역</h2></div>
+                    <button type="button" data-report-refresh>새로고침</button>
+                </div>
+                <div class="report-list" data-report-list></div>
+                <p class="report-empty" data-report-empty hidden>아직 작성한 신고가 없습니다.</p>
+                <div class="report-load-error" data-report-load-error hidden role="alert">
+                    <p>신고 내역을 불러오지 못했습니다.</p>
+                    <button type="button" data-report-retry>다시 시도</button>
+                </div>
+                <div class="pagination" data-report-pagination></div>
             </section>
         </div>
 

@@ -268,6 +268,12 @@ function renderRoomHeader(room) {
     const statusEl = el('chatRoomStatus');
     statusEl.textContent = room.status === 'CLOSED' ? '종료됨' : '진행 중';
     statusEl.classList.toggle('is-closed', room.status === 'CLOSED');
+    const reportButton = el('chatReportButton');
+    reportButton.href = `/mypage/reports?${new URLSearchParams({
+        targetType: 'CHAT_ROOM',
+        targetId: room.chatRoomId,
+    })}`;
+    reportButton.hidden = false;
 }
 
 // ------------------------------------------------------------------
