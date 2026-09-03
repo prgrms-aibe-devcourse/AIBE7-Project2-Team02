@@ -1,5 +1,16 @@
 /* 구매자가 상품 판매자에게 견적을 요청하는 화면에서 사용하는 스타일 */
 
+/* 견적 요청 작성 화면 */
+
+.estimate-create-page {
+    width: min(
+            var(--content-width),
+            calc(100% - 48px)
+    );
+    margin: 0 auto;
+    padding: 44px 0 64px;
+}
+
 .estimate-page-header {
     margin-bottom: 24px;
 }
