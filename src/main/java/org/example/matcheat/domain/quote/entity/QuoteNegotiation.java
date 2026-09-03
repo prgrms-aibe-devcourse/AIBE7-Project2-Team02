@@ -102,7 +102,7 @@ public class QuoteNegotiation {
 		this.sellerId = sellerId;
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = Quote.calculateTotalAmount(quantity, unitPrice, deliveryFee); // 기존 Quote 계산 로직 재사용
 		this.status = NegotiationStatus.NEGOTIATING;
 	}
@@ -130,7 +130,7 @@ public class QuoteNegotiation {
 		}
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = Quote.calculateTotalAmount(quantity, unitPrice, deliveryFee);
 		this.additionalNotes = additionalNotes;
 	}
@@ -168,11 +168,12 @@ public class QuoteNegotiation {
 		}
 	}
 
-	public void applyEdit(Integer quantity, Long unitPrice, Long deliveryFee) {
+	public void applyEdit(Integer quantity, Long unitPrice, Long deliveryFee, String additionalNotes) {
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = Quote.calculateTotalAmount(quantity, unitPrice, deliveryFee);
+		this.additionalNotes = additionalNotes; // [추가] 지금까지 AI 요약만 채우던 필드를 자유수정에서도 채울 수 있게
 	}
 
 	/** 요구사항 4: AI 요약 1회 제한 — 서버가 강제, 재호출 자체를 막는다 */

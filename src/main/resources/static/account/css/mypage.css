@@ -698,6 +698,16 @@ body {
     color: var(--color-primary-hover);
 }
 
+.record-report-link {
+    padding-bottom: 2px;
+    border-bottom: 1px solid currentColor;
+    color: #9a4530;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.record-report-link[hidden] { display: none; }
+
 .partial-state {
     display: flex;
     align-items: center;

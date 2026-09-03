@@ -44,9 +44,25 @@ public class JpaAdminAccountRepository implements AdminAccountRepository {
     }
 
     @Override
-    public Optional<UserSummary> changeUserStatus(long userId, UserStatus status) {
+    public Optional<UserSummary> changeUserStatus(long userId, UserStatus status, String suspensionReason) {
         return users.findById(userId).map(user -> {
-            user.changeStatus(status);
+            user.changeStatus(status, suspensionReason);
+            return toSummary(user);
+        });
+    }
+
+    @Override
+    public Optional<UserSummary> suspendForPenalty(long userId) {
+        return users.findById(userId).map(user -> {
+            user.suspendForPenalty();
+            return toSummary(user);
+        });
+    }
+
+    @Override
+    public Optional<UserSummary> activateAfterPenalty(long userId) {
+        return users.findById(userId).map(user -> {
+            user.activateAfterPenalty();
             return toSummary(user);
         });
     }

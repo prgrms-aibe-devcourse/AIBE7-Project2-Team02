@@ -3,27 +3,35 @@ const adapters = {
     products: adaptProduct,
     purchases: adaptPurchase,
     sales: adaptSale,
-    receivedOffers: (record) => adaptOffer(record, '받은 오퍼'),
-    sentOffers: (record) => adaptOffer(record, '보낸 오퍼'),
-    receivedEstimates: (record) => adaptEstimate(record, '받은 견적'),
-    sentEstimates: (record) => adaptEstimate(record, '보낸 견적'),
+    receivedOffers: (record) =>
+        adaptOffer(record, '받은 제안'),
+
+    sentOffers: (record) =>
+        adaptOffer(record, '보낸 제안'),
+
+    receivedEstimates: (record) =>
+        adaptEstimate(record, '받은 견적 요청'),
+
+    sentEstimates: (record) =>
+        adaptEstimate(record, '보낸 견적 요청'),
     chats: adaptChatRoom,
 };
 
 const sourceLabels = {
-    requests: '등록 주문',
+    requests: '구매 요청',
     products: '등록 상품',
     purchases: '구매 거래',
     sales: '판매 거래',
     receivedOffers: '받은 제안',
     sentOffers: '보낸 제안',
-    receivedEstimates: '받은 견적',
-    sentEstimates: '보낸 견적',
+    receivedEstimates: '받은 견적 요청',
+    sentEstimates: '보낸 견적 요청',
     chats: '채팅',
 };
 
 export const mypageViews = Object.freeze({
     profile: {title: '계정 개요', kicker: 'ACCOUNT', sources: []},
+    reports: {title: '신고 및 문의', kicker: 'REPORTS', sources: []},
     requests: {
         title: '등록 관리',
         kicker: 'REGISTRATION',
@@ -114,7 +122,7 @@ export const mypageViews = Object.freeze({
             {
                 key: 'purchases',
                 label: '구매 거래',
-                endpoint: '/api/v1/orders/purchases',
+                endpoint: '/api/v1/orders/purchases?page=0&size=100',
             },
         ],
     },
@@ -148,21 +156,135 @@ export const mypageViews = Object.freeze({
             {
                 key: 'sales',
                 label: '판매 거래',
-                endpoint: '/api/v1/orders/sales',
+                endpoint: '/api/v1/orders/sales?page=0&size=100',
                 sellerOnly: true,
             },
         ],
     },
+    'buying-estimates': {
+        title: '구매 협의',
+        kicker: 'BUYING',
+        group: 'buying-negotiation',
+
+        tabs: [
+            {
+                key: 'buying-estimates',
+                label: '보낸 견적 요청',
+                href: '/mypage/buying-estimates',
+            },
+            {
+                key: 'buying-proposals',
+                label: '받은 제안',
+                href: '/mypage/buying-proposals',
+            },
+        ],
+
+        empty: [
+            '보낸 견적 요청이 없습니다.',
+            '상품에서 견적을 요청하면 이곳에서 확인할 수 있습니다.',
+        ],
+
+        sources: [
+            {
+                key: 'sentEstimates',
+                label: '보낸 견적 요청',
+                endpoint: '/api/v1/estimates/sent',
+            },
+        ],
+    },
+
+    'buying-proposals': {
+        title: '구매 협의',
+        kicker: 'BUYING',
+        group: 'buying-negotiation',
+
+        tabs: [
+            {
+                key: 'buying-estimates',
+                label: '보낸 견적 요청',
+                href: '/mypage/buying-estimates',
+            },
+            {
+                key: 'buying-proposals',
+                label: '받은 제안',
+                href: '/mypage/buying-proposals',
+            },
+        ],
+
+        sources: [],
+    },
+
+    'selling-estimates': {
+        title: '판매 협의',
+        kicker: 'SELLING',
+        group: 'selling-negotiation',
+        sellerOnly: true,
+
+        tabs: [
+            {
+                key: 'selling-estimates',
+                label: '받은 견적 요청',
+                href: '/mypage/selling-estimates',
+            },
+            {
+                key: 'selling-proposals',
+                label: '보낸 제안',
+                href: '/mypage/selling-proposals',
+            },
+        ],
+
+        empty: [
+            '받은 견적 요청이 없습니다.',
+            '구매자가 상품에 견적을 요청하면 이곳에서 확인할 수 있습니다.',
+        ],
+
+        sources: [
+            {
+                key: 'receivedEstimates',
+                label: '받은 견적 요청',
+                endpoint: '/api/v1/estimates/received',
+                sellerOnly: true,
+            },
+        ],
+    },
+
+    'selling-proposals': {
+        title: '판매 협의',
+        kicker: 'SELLING',
+        group: 'selling-negotiation',
+        sellerOnly: true,
+
+        tabs: [
+            {
+                key: 'selling-estimates',
+                label: '받은 견적 요청',
+                href: '/mypage/selling-estimates',
+            },
+            {
+                key: 'selling-proposals',
+                label: '보낸 제안',
+                href: '/mypage/selling-proposals',
+            },
+        ],
+
+        sources: [],
+    },
     offers: {
         title: '제안 관리',
         kicker: 'PROPOSALS',
-        sources: [],
+        empty: ['주고받은 제안이 없습니다.', '제안이나 견적 요청이 생성되면 이곳에 표시됩니다.'],
+        sources: [
+            {key: 'receivedOffers', label: '받은 제안', endpoint: '/api/v1/proposals/received?page=0&size=100'},
+            {key: 'sentOffers', label: '보낸 제안', endpoint: '/api/v1/proposals/sent?page=0&size=100', sellerOnly: true},
+            {key: 'receivedEstimates', label: '받은 견적', endpoint: '/api/v1/estimates/received', sellerOnly: true},
+            {key: 'sentEstimates', label: '보낸 견적', endpoint: '/api/v1/estimates/sent'},
+        ],
     },
     chats: {
         title: '채팅',
         kicker: 'CHATS',
         empty: ['참여 중인 채팅방이 없습니다.', '거래 대화가 시작되면 채팅방 요약이 이곳에 표시됩니다.'],
-        sources: [{key: 'chats', label: '채팅', endpoint: '/api/v1/chat-rooms'}],
+        sources: [{key: 'chats', label: '채팅', endpoint: '/api/v1/chat-rooms?page=0&size=100'}],
     },
 });
 
@@ -176,12 +298,7 @@ export function adaptMypagePayload(sourceKey, payload) {
     const records = extractRecords(payload);
 
     // 거래 내역에서는 최종 견적서가 생성된 거래만 표시한다.
-    const visibleRecords =
-        sourceKey === 'purchases' || sourceKey === 'sales'
-            ? records.filter(isCompletedTradeRecord)
-            : records;
-
-    return visibleRecords.map((record) => ({
+    return records.map((record) => ({
         ...adapter(record),
         sourceKey,
         sourceLabel: sourceLabels[sourceKey] || sourceKey,
@@ -330,6 +447,8 @@ function adaptTradeActivity(record, perspective) {
         href ? '거래 보기' : '',
         value(record, 'paidAt', 'createdAt', 'eventDateTime'),
         reviewPaymentId,
+        sourceType,
+        sourceId,
     );
 
     return {
@@ -354,7 +473,7 @@ function tradeDisplayState(record) {
     if (paymentStatus === 'COMPLETED') {
         return {
             code: 'COMPLETED',
-            label: '거래 완료',
+            label: '완료',
         };
     }
 
@@ -384,15 +503,7 @@ function tradeDisplayState(record) {
     }
 
     if (sourceType === 'PROPOSAL') {
-        return direction === 'SENT'
-            ? {
-                code: 'PROPOSED',
-                label: '제안 보냄',
-            }
-            : {
-                code: 'PROPOSED',
-                label: '제안 받음',
-            };
+        return {code: 'PROPOSED', label: '제안'};
     }
 
     if (sourceType === 'ESTIMATE') {
@@ -465,6 +576,9 @@ function adaptOffer(record, direction) {
         requestId ? `/requests/${encodeURIComponent(requestId)}` : '/proposals',
         requestId ? '주문 보기' : '제안 보기',
         value(record, 'createdAt', 'proposedAt'),
+        null,
+        'PROPOSAL',
+        id,
     );
 }
 
@@ -481,9 +595,12 @@ function adaptEstimate(record, direction) {
             labeledDate('행사', value(record, 'eventDateTime')),
             labeledDate('요청', value(record, 'createdAt')),
         ),
-        id ? `/estimates/${encodeURIComponent(id)}` : '/estimates',
-        '견적 보기',
+        id ? `/estimates/${encodeURIComponent(id)}` : '',
+        '요청 상세',
         value(record, 'createdAt', 'eventDateTime'),
+        null,
+        'ESTIMATE',
+        id,
     );
 }
 
@@ -505,10 +622,16 @@ function adaptChatRoom(record) {
         id ? `/chat?roomId=${encodeURIComponent(id)}` : '/chat',
         '채팅 열기',
         value(record, 'lastMessageAt', 'updatedAt', 'createdAt'),
+        null,
+        'CHAT_ROOM',
+        id,
     );
 }
 
-function viewRecord(key, title, status, detail, meta, href = '', actionLabel = '', sortValue = '', reviewPaymentId = null) {
+function viewRecord(
+    key, title, status, detail, meta, href = '', actionLabel = '', sortValue = '',
+    reviewPaymentId = null, reportTargetType = null, reportTargetId = null
+) {
     const statusCode = status || 'ACTIVE';
     return {
         key,
@@ -521,6 +644,8 @@ function viewRecord(key, title, status, detail, meta, href = '', actionLabel = '
         actionLabel,
         sortAt: timestamp(sortValue),
         reviewPaymentId,
+        reportTargetType,
+        reportTargetId,
     };
 }
 

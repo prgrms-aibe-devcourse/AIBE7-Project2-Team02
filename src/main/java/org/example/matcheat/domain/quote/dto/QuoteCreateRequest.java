@@ -22,4 +22,5 @@ public class QuoteCreateRequest {
 	private Long unitPrice;
 
 	private Long deliveryFee; // 선택 (null이면 0으로 계산)
+	private String additionalNotes;
 }

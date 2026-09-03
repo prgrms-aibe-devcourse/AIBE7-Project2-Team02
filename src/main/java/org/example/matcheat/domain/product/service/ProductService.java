@@ -59,6 +59,7 @@ public class ProductService {
                 dto.getServingPrice(),
                 dto.getDeliveryRadiusKm(),
                 dto.getStoreAddress(),
+                dto.getStoreAddressDetail(),
                 coordinates.latitude(),
                 coordinates.longitude(),
                 dto.getCategory(),
@@ -176,19 +177,24 @@ public class ProductService {
     }
 
     /**
-     * 선택한 조건에 맞는 판매 조건만 조회한다. viewerAccountId는 조회하는 사용자의 계정 ID(비로그인이면 null)이다.
+     * 선택한 조건에 맞는 판매 조건만 조회한다. ownerAccountId를 넘기면 그 계정이 등록한
+     * 상품으로만 좁힌다 (seller_profiles.seller_id가 아니라 계정 ID 기준). viewerAccountId는
+     * 조회하는 사용자의 계정 ID(비로그인이면 null)이다.
      */
     @Transactional(readOnly = true)
-    public List<ProductResponseDTO> search(String quantity, String category, String servingPrice, Long viewerAccountId) {
+    public List<ProductResponseDTO> search(String quantity, String category, String servingPrice,
+                                           Long ownerAccountId, Long viewerAccountId) {
         Integer parsedQuantity = parseNullableInteger(quantity);
         String normalizedCategory = normalizeText(category);
         Integer parsedServingPrice = parseNullableInteger(servingPrice);
 
-        if (parsedQuantity == null && normalizedCategory == null && parsedServingPrice == null) {
+        if (parsedQuantity == null && normalizedCategory == null
+                && parsedServingPrice == null && ownerAccountId == null) {
             return findAll(viewerAccountId);
         }
 
         return productRepository.findAllByHiddenFalseOrderByUpdatedAtDescIdDesc().stream()
+                .filter(product -> matchesOwner(product, ownerAccountId))
                 .filter(product -> matchesQuantity(product, parsedQuantity))
                 .filter(product -> matchesCategory(product, normalizedCategory))
                 .filter(product -> matchesServingPrice(product, parsedServingPrice))
@@ -197,7 +203,6 @@ public class ProductService {
                     if (updatedAtCompare != 0) {
                         return updatedAtCompare;
                     }
-
                     return Long.compare(right.getId(), left.getId());
                 })
                 .map(product -> ProductResponseDTO.from(product, viewerAccountId))
@@ -205,8 +210,14 @@ public class ProductService {
     }
 
     /**
-     * 기존 판매 조건을 전달받은 값으로 부분 수정한다. (일반 사용자용 하위호환 오버로드)
+     * 판매 조건의 소유 계정이 검색 조건의 ownerAccountId와 일치하는지 확인한다. null이면 통과시킨다.
      */
+    private boolean matchesOwner(ProductEntity product, Long ownerAccountId) {
+        if (ownerAccountId == null) {
+            return true;
+        }
+        return ownerAccountId.equals(product.getOwnerAccountId());
+    }
     @Transactional
     public ProductResponseDTO update(Long id, @Valid ProductUpdateDTO dto, Long ownerAccountId) {
         return update(id, dto, null, ownerAccountId, false);
@@ -266,6 +277,7 @@ public class ProductService {
                 dto.getServingPrice(),
                 dto.getDeliveryRadiusKm(),
                 dto.getStoreAddress(),
+                dto.getStoreAddressDetail(),
                 latitude,
                 longitude,
                 dto.getCategory(),

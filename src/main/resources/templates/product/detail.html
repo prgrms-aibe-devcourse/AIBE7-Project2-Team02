@@ -54,6 +54,13 @@
                     </div>
 
                     <div>
+                        <span>상세 주소</span>
+                        <strong id="storeAddressDetail"></strong>
+                    </div>
+                </div>
+
+                <div class="product-detail-extra">
+                    <div>
                         <span>최종 수정일</span>
                         <strong id="updatedAt"></strong>
                     </div>
@@ -117,6 +124,7 @@
             <div class="product-detail-actions">
                 <a id="estimateButton" class="product-detail-button" href="#">견적 요청하기</a>
                 <button id="chatButton" type="button" class="product-detail-button product-detail-primary">💬 바로 채팅하기</button>
+                <a id="reportButton" class="product-detail-button product-detail-report" href="#">상품 신고</a>
                 <a id="editButton" class="product-detail-button product-detail-primary" href="#" style="display:none;">수정하기</a>
                 <a id="reviewsButton" class="product-detail-button" href="#">후기 전체보기</a>
                 <a class="product-detail-button" th:href="@{/product}">목록으로 돌아가기</a>

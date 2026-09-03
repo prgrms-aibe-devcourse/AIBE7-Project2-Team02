@@ -14,6 +14,7 @@ const recordsBySource = new Map();
 const failuresBySource = new Map();
 let authorizedSources = [];
 let visibleRecordCount = RECORD_PAGE_SIZE;
+let lastRecordSyncAt = 0;
 
 const currentView = location.pathname.split('/').filter(Boolean).at(-1);
 const viewKey = currentView === 'mypage' ? 'profile' : currentView;
@@ -56,16 +57,158 @@ if (viewKey === 'profile') {
 
     configureAccountActions(profile);
 } else if (viewKey === 'offers') {
-    document.querySelector('[data-proposal-panel]').hidden = false;
-    document.querySelector('[data-loading-state]').hidden = true;
-
-    configureProposalView(profile);
+    if (document.querySelector('[data-proposal-panel] [data-proposal-tab]')) {
+        document.querySelector('[data-proposal-panel]').hidden = false;
+        document.querySelector('[data-loading-state]').hidden = true;
+        configureProposalView(profile);
+    } else {
+        authorizedSources = view.sources.filter(
+            (source) => !source.sellerOnly || profile.role === 'SELLER'
+        );
+        await loadRecords(authorizedSources);
+    }
+} else if (viewKey === 'reports') {
+    await configureReportView();
 } else {
     authorizedSources = view.sources.filter(
         (source) => !source.sellerOnly || profile.role === 'SELLER'
     );
 
     await loadRecords(authorizedSources);
+}
+
+if (authorizedSources.length > 0) {
+    lastRecordSyncAt = Date.now();
+    const refreshIfStale = () => {
+        if (!document.hidden && Date.now() - lastRecordSyncAt >= 15000) {
+            lastRecordSyncAt = Date.now();
+            loadRecords(authorizedSources);
+        }
+    };
+    window.addEventListener('focus', refreshIfStale);
+    document.addEventListener('visibilitychange', refreshIfStale);
+    setInterval(refreshIfStale, 60000);
+}
+
+async function configureReportView() {
+    document.querySelector('[data-loading-state]').hidden = true;
+    document.querySelector('[data-report-panel]').hidden = false;
+    const form = document.querySelector('[data-report-form]');
+    const reportContext = reportContextFromLocation();
+    if (reportContext) {
+        const contextLabel = reportTargetLabel(reportContext.targetType);
+        const context = document.querySelector('[data-report-context]');
+        context.textContent = `신고 대상: ${contextLabel} #${reportContext.targetId}`;
+        context.hidden = false;
+        form.elements.title.value = `${contextLabel} 신고`;
+    }
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const report = {
+            title: form.elements.title.value,
+            message: form.elements.message.value,
+            targetType: reportContext?.targetType ?? null,
+            targetId: reportContext?.targetId ?? null,
+        };
+        const evidenceFiles = [...(form.elements.evidence?.files || [])].slice(0, 3);
+        const data = new FormData();
+        data.append('report', new Blob([JSON.stringify(report)], {type: 'application/json'}));
+        for (const file of evidenceFiles) data.append('files', file);
+        const response = await authFetch('/api/v1/reports', {method: 'POST', body: data});
+        const created = await readApiBody(response);
+        if (!response.ok) {
+            showFormMessage(form, created?.message || '신고를 접수하지 못했습니다.', false);
+            return;
+        }
+        form.reset();
+        showFormMessage(form, '관리자에게 신고 내용을 전달했습니다.', true);
+    });
+}
+
+async function loadReports(page) {
+    const error = document.querySelector('[data-report-load-error]');
+    error.hidden = true;
+    try {
+        const response = await authFetch(`/api/v1/reports/mine?page=${page}&size=10`);
+        if (response.status === 401) redirectToLogin();
+        const body = await readApiBody(response);
+        if (!response.ok) throw new Error(body?.message || '신고 내역을 불러오지 못했습니다.');
+        document.querySelector('[data-report-list]').replaceChildren(...body.content.map(reportCard));
+        document.querySelector('[data-report-empty]').hidden = body.content.length !== 0;
+        renderReportPagination(body);
+    } catch (failure) {
+        document.querySelector('[data-report-empty]').hidden = true;
+        error.querySelector('p').textContent = failure.message || '네트워크 연결을 확인해 주세요.';
+        error.hidden = false;
+    }
+}
+
+function reportCard(report) {
+    const card = document.createElement('article');
+    card.className = 'report-card';
+    const heading = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = report.title;
+    const status = document.createElement('span');
+    status.className = 'status-chip';
+    status.dataset.status = report.status;
+    status.textContent = reportStatusLabel(report.status);
+    heading.append(title, status);
+    const message = document.createElement('p');
+    message.textContent = report.message;
+    const date = document.createElement('small');
+    date.textContent = new Intl.DateTimeFormat('ko-KR', {dateStyle: 'medium', timeStyle: 'short'})
+        .format(new Date(report.createdAt));
+    card.append(heading, message, date);
+    if (report.targetType && report.targetId) {
+        const target = document.createElement('small');
+        target.textContent = `대상: ${reportTargetLabel(report.targetType)} #${report.targetId}`;
+        card.append(target);
+    }
+    if (report.adminResponse) {
+        const response = document.createElement('blockquote');
+        response.textContent = `관리자 답변: ${report.adminResponse}`;
+        card.append(response);
+    }
+    return card;
+}
+
+function renderReportPagination(page) {
+    const container = document.querySelector('[data-report-pagination]');
+    container.replaceChildren();
+    for (let index = 0; index < page.totalPages; index += 1) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = index + 1;
+        if (index === page.page) button.setAttribute('aria-current', 'page');
+        button.addEventListener('click', () => loadReports(index));
+        container.append(button);
+    }
+}
+
+function reportStatusLabel(status) {
+    return {PENDING: '접수', IN_REVIEW: '검토 중', RESOLVED: '처리 완료', REJECTED: '반려'}[status] || status;
+}
+
+function reportContextFromLocation() {
+    const query = new URLSearchParams(location.search);
+    const targetType = query.get('targetType');
+    const targetId = Number(query.get('targetId'));
+    const allowed = new Set(['ORDER_REQUEST', 'PROPOSAL', 'ESTIMATE', 'QUOTE', 'CHAT_ROOM', 'PRODUCT']);
+    return allowed.has(targetType) && Number.isSafeInteger(targetId) && targetId > 0
+        ? {targetType, targetId}
+        : null;
+}
+
+function reportTargetLabel(targetType) {
+    return {
+        ORDER_REQUEST: '구매 요청', PROPOSAL: '제안', ESTIMATE: '견적 요청',
+        QUOTE: '견적 거래', CHAT_ROOM: '채팅방', PRODUCT: '상품',
+    }[targetType] || '서비스 이용';
+}
+
+function reportUrl(targetType, targetId) {
+    return `/mypage/reports?${new URLSearchParams({targetType, targetId})}`;
 }
 
 async function loadRecords(sources) {
@@ -264,7 +407,7 @@ function configureViewTabs(profile) {
 }
 
 /**
- * 제안 관리 화면에서 계정 역할에 맞는 탭을 표시합니다.
+ * 제안 목록을 사용하는 마이페이지 화면의 탭 표시를 구성합니다.
  */
 function configureProposalView(profile) {
     const sentTab =
@@ -277,6 +420,21 @@ function configureProposalView(profile) {
             '.proposal-list-tabs'
         );
 
+    const groupedNegotiationView =
+        viewKey === 'buying-proposals'
+        || viewKey === 'selling-proposals';
+
+    // 구매/판매 협의 화면에서는 마이페이지 상단 탭이
+    // 역할을 대신하므로 Proposal 자체 탭은 표시하지 않는다.
+    if (groupedNegotiationView) {
+        if (tabContainer) {
+            tabContainer.hidden = true;
+        }
+
+        return;
+    }
+
+    // 기존 /mypage/offers 경로 호환 처리
     const seller =
         profile.role === 'SELLER';
 
@@ -285,8 +443,6 @@ function configureProposalView(profile) {
     }
 
     if (tabContainer) {
-        // 일반 회원은 받은 제안만 사용할 수 있으므로
-        // 선택지가 하나뿐인 탭 UI는 표시하지 않는다.
         tabContainer.hidden = !seller;
     }
 }
@@ -305,6 +461,19 @@ function configureAccountActions(profile) {
     });
 
     configureSellerAction(profile);
+    const passwordForm = document.querySelector('[data-password-form]');
+    passwordForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!validateRequiredFields(passwordForm)) return;
+        const response = await submitJsonForm(passwordForm, '/api/v1/account/me/password', 'PATCH', {
+            currentPassword: passwordForm.elements.currentPassword.value,
+            newPassword: passwordForm.elements.newPassword.value,
+            newPasswordConfirm: passwordForm.elements.newPasswordConfirm.value,
+        });
+        if (response === null) return;
+        clearAccessToken();
+        window.location.replace('/login?passwordChanged=success');
+    });
     const withdrawForm = document.querySelector('[data-withdraw-form]');
     withdrawForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -552,6 +721,7 @@ function renderRecords(records) {
         <span class="status-chip"></span>
         <a class="record-link" hidden></a>
         <a class="record-link" data-review-link hidden></a>
+        <a class="record-report-link" hidden>신고</a>
       </div>`;
         article.querySelector('.record-source').textContent = record.sourceLabel;
         article.querySelector('h2').textContent = record.title;
@@ -585,6 +755,11 @@ function renderRecords(records) {
             reviewLink.href = `/reviews/new?paymentId=${encodeURIComponent(record.reviewPaymentId)}`;
             reviewLink.textContent = '리뷰 작성';
             reviewLink.hidden = false;
+        }
+        if (record.reportTargetType && record.reportTargetId) {
+            const reportLink = article.querySelector('.record-report-link');
+            reportLink.href = reportUrl(record.reportTargetType, record.reportTargetId);
+            reportLink.hidden = false;
         }
         list.append(article);
     });

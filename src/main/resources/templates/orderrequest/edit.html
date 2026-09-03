@@ -117,26 +117,52 @@
             </div>
         </div>
 
-        <!-- 배송지 수정 영역 -->
-        <div class="order-form-field order-form-full">
-            <label for="deliveryAddress">배송지</label>
+        <!-- 배송지와 상세 주소 수정 영역 -->
+        <div class="order-form-row">
 
-            <div class="order-address-inputs">
-                <input type="text"
-                       id="deliveryAddress"
-                       th:field="*{deliveryAddress}"
-                       placeholder="주소 검색 버튼을 눌러 배송지를 선택해주세요">
+            <div class="order-form-field">
+                <label for="deliveryAddress">
+                    배송지
+                </label>
 
-                <button type="button"
-                        id="addressSearchButton"
-                        class="order-address-search">
-                    주소 재검색
-                </button>
+                <div class="order-address-inputs">
+                    <input type="text"
+                           id="deliveryAddress"
+                           th:field="*{deliveryAddress}"
+                           autocomplete="street-address"
+                           placeholder="주소 검색을 이용해주세요"
+                           required>
+
+                    <button type="button"
+                            id="addressSearchButton"
+                            class="order-address-search">
+                        주소 재검색
+                    </button>
+                </div>
+
+                <p class="order-form-help">
+                    배송지가 변경되었다면 새 주소를 검색해주세요.
+                </p>
             </div>
 
-            <p class="order-form-help">
-                배송지가 변경되었다면 새 주소를 검색해주세요.
-            </p>
+            <div class="order-form-field">
+                <label for="deliveryAddressDetail">
+                    상세 주소
+                </label>
+
+                <input type="text"
+                       id="deliveryAddressDetail"
+                       th:field="*{deliveryAddressDetail}"
+                       maxlength="255"
+                       autocomplete="address-line2"
+                       placeholder="예: 101동 202호 / 3층 행사장"
+                       required>
+
+                <p class="order-form-help">
+                    실제 배송 위치를 상세하게 입력해주세요.
+                </p>
+            </div>
+
         </div>
 
         <!-- 상세 요청사항 수정 영역 -->

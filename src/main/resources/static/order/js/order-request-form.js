@@ -21,6 +21,11 @@ if (form) {
             'deliveryAddress'
         );
 
+    const addressDetailInput =
+        document.getElementById(
+            'deliveryAddressDetail'
+        );
+
     const addressSearchButton =
         document.getElementById(
             'addressSearchButton'
@@ -255,6 +260,14 @@ if (form) {
                             'deliveryAddress'
                         )
                         .value
+                        .trim(),
+
+                deliveryAddressDetail:
+                    form.elements
+                        .namedItem(
+                            'deliveryAddressDetail'
+                        )
+                        .value
                         .trim()
             };
 
@@ -379,7 +392,10 @@ if (form) {
                 addressInput.value =
                     selectedAddress;
 
-                addressInput.focus();
+// 새 배송지를 선택하면 이전 상세 주소가
+// 다른 장소의 정보로 남지 않도록 초기화한다.
+                addressDetailInput.value = '';
+                addressDetailInput.focus();
             }
         }).open();
     }
@@ -433,6 +449,14 @@ if (form) {
             )
             .value =
             order.deliveryAddress
+            || '';
+
+        form.elements
+            .namedItem(
+                'deliveryAddressDetail'
+            )
+            .value =
+            order.deliveryAddressDetail
             || '';
 
         form.elements

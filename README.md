@@ -7,12 +7,17 @@
 
 도메인 디렉터리가 담당자와 1:1로 매핑되도록 역할을 수직 분할해, 짧은 기간에도 코드 충돌을 최소화하며 개발했습니다.
 
+| 김해송 | 김현중 | 박한솔 | 정민석  |
+|:------:|:------:|:------:|:------:|
+| <img src="https://avatars.githubusercontent.com/peanutboi710" width="100"/> | <img src="https://avatars.githubusercontent.com/YOLO-NIM" width="100"/> | <img src="https://avatars.githubusercontent.com/goarns77" width="100"/> | <img src="https://avatars.githubusercontent.com/jms0326" width="100"/> |
+| [@peanutboi710](https://github.com/peanutboi710) | [@YOLO-NIM](https://github.com/YOLO-NIM) | [@goarns77](https://github.com/goarns77) | [@jms0326](https://github.com/jms0326) |
+
 | 참가자 | 담당 역할 | 담당 도메인 |
 |---|---|---|
-| 정민석 | 판매자 도메인 및 역매칭 | `product`, `matching/product`(역매칭), `estimate`, `review` |
 | 김해송 (팀 리딩) | 실시간 협상 · AI · 결제 | `chat`, `quote`(AI 견적 요약), `payment`, 통합 브랜치 병합 전담 |
 | 김현중 | 주문 라이프사이클 · 매칭 엔진 | `order`, `matching`(정매칭), `proposal` |
 | 박한솔 | 인증 · 보안 · 계정 아키텍처 | `account`(회원가입 · 로그인 · JWT · 관리자 · 마이페이지) |
+| 정민석 | 판매자 도메인 및 역매칭 | `product`, `matching/product`(역매칭), `estimate`, `review` |
 
 ## 주요 기능
 

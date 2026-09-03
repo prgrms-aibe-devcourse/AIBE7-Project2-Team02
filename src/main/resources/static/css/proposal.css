@@ -1,4 +1,4 @@
-/* 수주 제안 작성 및 조회 화면에서 사용하는 스타일 */
+/* 제안 작성 화면 */
 
 .proposal-page-header {
     margin-bottom: 24px;
@@ -6,17 +6,30 @@
 
 .proposal-page-header h1 {
     margin: 0 0 8px;
+
+    color: #1F2937;
+
+    font-size: 30px;
+    line-height: 1.3;
 }
 
 .proposal-page-header p {
     margin: 0;
+
+    color: #6B7280;
+
+    font-size: 15px;
+    line-height: 1.6;
 }
+
+
+/* 제안 대상 주문 */
 
 .proposal-order-summary {
     margin-bottom: 20px;
     padding: 24px;
 
-    border: 1px solid #ddd;
+    border: 1px solid #E8DDD8;
     border-radius: 8px;
 
     background-color: #fff;
@@ -26,32 +39,53 @@
     margin: 0 0 20px;
     padding-bottom: 16px;
 
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #E8DDD8;
 
-    font-size: 20px;
+    color: #1F2937;
+
+    font-size: 18px;
 }
 
 .proposal-summary-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 24px;
 }
 
 .proposal-summary-grid > div {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+
+    gap: 7px;
+
+    min-width: 0;
 }
 
 .proposal-summary-label {
-    color: #777;
+    color: #6B7280;
+
     font-size: 13px;
 }
 
-.proposal-form-card {
-    padding: 32px;
+.proposal-summary-grid strong {
+    overflow: hidden;
 
-    border: 1px solid #ddd;
+    color: #1F2937;
+
+    font-size: 15px;
+
+    text-overflow: ellipsis;
+}
+
+
+/* 제안 작성 카드 */
+
+.proposal-form-card {
+    padding: 28px;
+
+    border: 1px solid #E8DDD8;
     border-radius: 8px;
 
     background-color: #fff;
@@ -59,12 +93,19 @@
 
 .proposal-form-card h2 {
     margin: 0 0 16px;
+
+    color: #1F2937;
+
     font-size: 20px;
 }
 
+
+/* 제안 방식 선택 */
+
 .proposal-mode-buttons {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
 
     gap: 8px;
 
@@ -72,26 +113,46 @@
 }
 
 .proposal-mode-button {
-    padding: 12px;
+    min-height: 44px;
+    padding: 10px 14px;
 
-    border: 1px solid #ccc;
+    border: 1px solid #CFC1BA;
     border-radius: 6px;
 
     background-color: #fff;
+    color: #374151;
+
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
 
     cursor: pointer;
+
+    transition: border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.proposal-mode-button:hover {
+    border-color: #E85D3F;
+
+    background-color: #FFF8F5;
 }
 
 .proposal-mode-button.is-active {
-    border-color: #222;
+    border-color: #E85D3F;
 
-    background-color: #222;
-    color: #fff;
+    background-color: #FFF2ED;
+    color: #C94A30;
 }
+
+
+/* 입력 영역 */
 
 .proposal-form-row {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
 
     gap: 24px;
 
@@ -101,7 +162,15 @@
 .proposal-form-field {
     display: flex;
     flex-direction: column;
+
     gap: 8px;
+}
+
+.proposal-form-field label {
+    color: #374151;
+
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .proposal-form-field input,
@@ -111,10 +180,47 @@
 
     padding: 10px 12px;
 
-    border: 1px solid #ccc;
+    border: 1px solid #CFC1BA;
+    border-radius: 6px;
+
+    background-color: #fff;
+    color: #1F2937;
+
+    font: inherit;
+    font-size: 14px;
+
+    transition: border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.proposal-form-field input,
+.proposal-form-field select {
+    min-height: 44px;
+}
+
+.proposal-form-field input:focus,
+.proposal-form-field select:focus,
+.proposal-form-field textarea:focus {
+    border-color: #E85D3F;
+    outline: none;
+
+    box-shadow: 0 0 0 3px rgba(232, 93, 63, 0.12);
+}
+
+.proposal-form-field input[readonly] {
+    border-color: #E8DDD8;
+
+    background-color: #FAF7F5;
+    color: #6B7280;
+
+    cursor: default;
 }
 
 .proposal-form-field textarea {
+    min-height: 140px;
+
+    line-height: 1.6;
+
     resize: vertical;
 }
 
@@ -125,7 +231,7 @@
 .proposal-form-hint {
     margin: 0;
 
-    color: #777;
+    color: #6B7280;
 
     font-size: 13px;
     line-height: 1.5;
@@ -140,6 +246,17 @@
     gap: 8px;
 }
 
+.proposal-preparation-input span {
+    flex-shrink: 0;
+
+    color: #6B7280;
+
+    font-size: 14px;
+}
+
+
+/* 등록 상품 미리보기 */
+
 .proposal-product-preview {
     display: flex;
     align-items: center;
@@ -149,27 +266,40 @@
     margin-top: 8px;
     padding: 16px;
 
-    border: 1px solid #eee;
-    border-radius: 8px;
+    border: 1px solid #E8DDD8;
+    border-radius: 6px;
 
-    background-color: #fafafa;
+    background-color: #FAF7F5;
 }
 
 .proposal-product-preview img {
+    flex-shrink: 0;
+
     width: 88px;
     height: 88px;
 
-    border-radius: 8px;
+    border-radius: 6px;
 
     object-fit: cover;
+}
+
+.proposal-product-preview strong {
+    color: #1F2937;
+
+    font-size: 15px;
 }
 
 .proposal-product-preview p {
     margin: 6px 0 0;
 
-    color: #666;
+    color: #6B7280;
+
+    font-size: 14px;
     line-height: 1.5;
 }
+
+
+/* 하단 버튼 */
 
 .proposal-form-actions {
     display: flex;
@@ -177,7 +307,10 @@
 
     gap: 8px;
 
-    margin-top: 32px;
+    margin-top: 8px;
+    padding-top: 24px;
+
+    border-top: 1px solid #E8DDD8;
 }
 
 .proposal-cancel-button,
@@ -186,6 +319,7 @@
     justify-content: center;
     align-items: center;
 
+    min-width: 104px;
     height: 42px;
     padding: 0 18px;
 
@@ -193,22 +327,45 @@
 
     font: inherit;
     font-size: 14px;
+    font-weight: 600;
+
+    transition: border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .proposal-cancel-button {
-    border: 1px solid #ccc;
+    border: 1px solid #CFC1BA;
 
     background-color: #fff;
-    color: #222;
+    color: #374151;
+}
+
+.proposal-cancel-button:hover {
+    background-color: #FAF7F5;
 }
 
 .proposal-submit-button {
-    border: 1px solid #222;
+    border: 1px solid #E85D3F;
 
-    background-color: #222;
+    background-color: #E85D3F;
     color: #fff;
 
     cursor: pointer;
+}
+
+.proposal-submit-button:hover {
+    border-color: #C94A30;
+
+    background-color: #C94A30;
+}
+
+.proposal-submit-button:disabled {
+    border-color: #D1D5DB;
+
+    background-color: #D1D5DB;
+    color: #fff;
+
+    cursor: default;
 }
 
 /* 받은 제안과 보낸 제안 목록 화면 */

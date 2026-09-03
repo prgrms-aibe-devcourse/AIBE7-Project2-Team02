@@ -79,11 +79,15 @@ public class AccountApiExceptionHandler {
     private static HttpStatus statusOf(AccountErrorCode code) {
         return switch (code) {
             case EMAIL_ALREADY_EXISTS, SELLER_APPLICATION_ALREADY_EXISTS,
-                    SELLER_APPLICATION_ALREADY_REVIEWED, ACTIVE_TRANSACTION_EXISTS -> HttpStatus.CONFLICT;
+                    SELLER_APPLICATION_ALREADY_REVIEWED, ACTIVE_TRANSACTION_EXISTS,
+                    REPORT_ALREADY_EXISTS, REPORT_ALREADY_REVIEWED,
+                    PENALTY_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case INVALID_CREDENTIALS, INVALID_TOKEN -> HttpStatus.UNAUTHORIZED;
             case ACCOUNT_SUSPENDED, ACCOUNT_WITHDRAWN, FORBIDDEN -> HttpStatus.FORBIDDEN;
-            case USER_NOT_FOUND, SELLER_APPLICATION_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case CANNOT_SUSPEND_SELF -> HttpStatus.BAD_REQUEST;
+            case USER_NOT_FOUND, SELLER_APPLICATION_NOT_FOUND, REPORT_NOT_FOUND,
+                    REPORT_TARGET_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case CANNOT_SUSPEND_SELF, INVALID_REPORT_STATUS -> HttpStatus.BAD_REQUEST;
+            case REPORT_RATE_LIMITED -> HttpStatus.TOO_MANY_REQUESTS;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

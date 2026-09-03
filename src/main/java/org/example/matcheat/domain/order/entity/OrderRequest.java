@@ -66,9 +66,16 @@ public class OrderRequest {
     @Column(nullable = false)
     private String category;
 
-    // 배송지 주소
+    // 거리 계산에 사용하는 배송지 도로명 주소
     @Column(nullable = false)
     private String deliveryAddress;
+
+    /**
+     * 실제 배송 위치를 확인하기 위한 상세 주소.
+     * 기존 주문 데이터와의 호환을 위해 DB 컬럼은 nullable로 유지한다.
+     */
+    @Column(name = "delivery_address_detail")
+    private String deliveryAddressDetail;
 
     // 배송지 위도
     @Column(nullable = false)
@@ -95,6 +102,7 @@ public class OrderRequest {
             BigDecimal budget,
             String category,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude,
             String referenceImageUrl
@@ -108,6 +116,8 @@ public class OrderRequest {
         this.budget = budget;
         this.category = category;
         this.deliveryAddress = deliveryAddress;
+        this.deliveryAddressDetail =
+                deliveryAddressDetail;
         this.latitude = latitude;
         this.longitude = longitude;
         this.referenceImageUrl = referenceImageUrl;
@@ -127,6 +137,7 @@ public class OrderRequest {
             BigDecimal budget,
             String category,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude
     ) {
@@ -141,6 +152,7 @@ public class OrderRequest {
                         budget,
                         category,
                         deliveryAddress,
+                        deliveryAddressDetail,
                         latitude,
                         longitude,
                         null
@@ -160,6 +172,7 @@ public class OrderRequest {
             BigDecimal budget,
             String category,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude,
             String referenceImageUrl
@@ -174,6 +187,7 @@ public class OrderRequest {
                 budget,
                 category,
                 deliveryAddress,
+                deliveryAddressDetail,
                 latitude,
                 longitude,
                 referenceImageUrl
@@ -192,6 +206,7 @@ public class OrderRequest {
             BigDecimal budget,
             String category,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude
     ) {
@@ -204,6 +219,7 @@ public class OrderRequest {
                 budget,
                 category,
                 deliveryAddress,
+                deliveryAddressDetail,
                 latitude,
                 longitude,
                 this.referenceImageUrl
@@ -222,6 +238,7 @@ public class OrderRequest {
             BigDecimal budget,
             String category,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude,
             String referenceImageUrl
@@ -256,6 +273,12 @@ public class OrderRequest {
 
         if (deliveryAddress != null && !deliveryAddress.isBlank()) {
             this.deliveryAddress = deliveryAddress;
+        }
+
+        if (deliveryAddressDetail != null
+                && !deliveryAddressDetail.isBlank()) {
+            this.deliveryAddressDetail =
+                    deliveryAddressDetail;
         }
 
         if (latitude != null) {

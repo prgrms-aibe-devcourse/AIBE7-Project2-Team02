@@ -8,6 +8,10 @@ import org.example.matcheat.domain.account.dto.LoginRequest;
 import org.example.matcheat.domain.account.dto.LoginResponse;
 import org.example.matcheat.domain.account.dto.SignUpRequest;
 import org.example.matcheat.domain.account.dto.SignUpResponse;
+import org.example.matcheat.domain.account.dto.SuspensionAppealRequest;
+import org.example.matcheat.domain.account.dto.SuspensionStatusResponse;
+import org.example.matcheat.domain.account.service.AccountApplicationException;
+import org.example.matcheat.domain.account.service.AccountErrorCode;
 import org.example.matcheat.domain.account.service.AccountAuthService;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -45,10 +49,22 @@ public class AuthRestController {
     @Operation(
             summary = "로그인 및 Access Token 발급",
             description = "반환된 accessToken을 Swagger UI의 Authorize에 입력하면 보호 API를 호출할 수 있습니다.")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = LoginResponse.from(accountAuthService.login(request.email(), request.password()));
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore())
-                .body(response);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        try {
+            LoginResponse response = LoginResponse.from(accountAuthService.login(request.email(), request.password()));
+            return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(response);
+        } catch (AccountApplicationException exception) {
+            if (exception.code() != AccountErrorCode.ACCOUNT_SUSPENDED) throw exception;
+            var status = accountAuthService.suspensionStatus(request.email(), request.password());
+            return ResponseEntity.status(HttpStatus.LOCKED).cacheControl(CacheControl.noStore()).body(
+                    new SuspensionStatusResponse("ACCOUNT_SUSPENDED", status.reason(),
+                            status.expiresAt(), status.indefinite()));
+        }
+    }
+
+    @PostMapping("/suspension/appeals")
+    public ResponseEntity<Void> submitSuspensionAppeal(@Valid @RequestBody SuspensionAppealRequest request) {
+        accountAuthService.submitSuspensionAppeal(request.email(), request.password(), request.message());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

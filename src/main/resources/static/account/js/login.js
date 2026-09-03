@@ -22,6 +22,7 @@ if (readAccessToken()) {
 }
 
 const notice = new URLSearchParams(window.location.search);
+if (notice.get('passwordChanged') === 'success') showMessage('비밀번호가 변경되었습니다. 다시 로그인해 주세요.', true);
 if (notice.get('signup') === 'success') showMessage('회원가입이 완료됐습니다. 로그인해 주세요.', true);
 if (notice.get('withdrawn') === 'success') showMessage('회원 탈퇴가 완료됐습니다.', true);
 
@@ -41,6 +42,12 @@ form.addEventListener('submit', async (event) => {
     });
     const body = await readApiBody(response);
     if (!response.ok) {
+      if (response.status === 423 && body?.code === 'ACCOUNT_SUSPENDED') {
+        sessionStorage.setItem('matcheat.suspension', JSON.stringify(body));
+        sessionStorage.setItem('matcheat.suspensionEmail', formData.get('email'));
+        window.location.assign('/suspended');
+        return;
+      }
       showFieldErrors(form, body?.fieldErrors);
       throw new Error(loginErrorMessage(body));
     }

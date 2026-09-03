@@ -13,7 +13,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "quotes")
+@Table(name = "quotes", indexes = {
+		@Index(name = "idx_quote_buyer_status_created", columnList = "buyer_id,status,created_at"),
+		@Index(name = "idx_quote_seller_status_created", columnList = "seller_id,status,created_at")
+})
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -79,7 +82,7 @@ public class Quote {
 		this.senderRole = senderRole;
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = totalAmount;
 		this.additionalNotes = additionalNotes;
 		this.status = status != null ? status : QuoteStatus.SENT;

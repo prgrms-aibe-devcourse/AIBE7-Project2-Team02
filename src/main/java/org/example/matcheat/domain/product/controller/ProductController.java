@@ -101,16 +101,17 @@ public class ProductController {
     }
 
     /**
-     * 수량, 카테고리, 1인분 가격 조건으로 판매 조건을 조회한다.
+     * 수량, 카테고리, 1인분 가격, 소유 계정 조건으로 판매 조건을 조회한다.
      */
     @GetMapping("/search")
     public ResponseEntity<List<ProductResponseDTO>> search(
             @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) Long ownerAccountId, // [수정] sellerId(안 쓰던 파라미터) → ownerAccountId로 이름/의미 명확화
             @RequestParam(required = false) String quantity,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String servingPrice
     ) {
-        List<ProductResponseDTO> response = productService.search(quantity, category, servingPrice, viewerId(jwt));
+        List<ProductResponseDTO> response = productService.search(quantity, category, servingPrice, ownerAccountId, viewerId(jwt));
 
         return ResponseEntity.ok(response);
     }

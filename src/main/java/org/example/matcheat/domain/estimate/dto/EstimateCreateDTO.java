@@ -18,39 +18,63 @@ import java.time.LocalDateTime;
  */
 public class EstimateCreateDTO {
 
-    /** 구매자가 직접 작성하는 상세 설명(선택) */
+    /**
+     * 구매자가 직접 작성하는 상세 설명(선택)
+     */
     private String description;
 
-    /** 견적을 요청할 대상 상품 ID (서버가 이 값으로 판매자를 알아낸다) */
+    /**
+     * 견적을 요청할 대상 상품 ID (서버가 이 값으로 판매자를 알아낸다)
+     */
     @NotNull
     private Long productId;
 
-    /** 예산 금액 */
+    /**
+     * 예산 금액
+     */
     @NotNull
     @Positive(message = "budget는 0보다 커야 합니다.")
     private BigDecimal budget;
 
-    /** 예산 유형(1인당/총액) */
+    /**
+     * 예산 유형(1인당/총액)
+     */
     @NotNull
     private BudgetType budgetType;
 
-    /** 상품/항목명 */
+    /**
+     * 상품/항목명
+     */
     @NotBlank
     private String itemName;
 
-    /** 주문 수량(인분 수) */
+    /**
+     * 주문 수량(인분 수)
+     */
     @NotNull
     @Positive(message = "quantity는 0보다 커야 합니다.")
     private Integer quantity;
 
-    /** 행사/이용 일시 */
+    /**
+     * 행사/이용 일시
+     */
     @NotNull
     private LocalDateTime eventDateTime;
 
-    /** 배송(행사) 주소. 서버가 이 값을 지오코딩해서 위경도를 계산한다 */
+    /**
+     * 배송(행사) 도로명 주소. 서버가 이 값만 지오코딩해서 위경도를 계산한다
+     */
     @NotBlank
     private String deliveryAddress;
 
-    /** 견적 이미지 URL(선택) */
+    /**
+     * 실제 배송 위치를 확인하기 위한 상세 주소
+     */
+    @NotBlank
+    private String deliveryAddressDetail;
+
+    /**
+     * 견적 이미지 URL(선택)
+     */
     private String estimateImage;
 }
