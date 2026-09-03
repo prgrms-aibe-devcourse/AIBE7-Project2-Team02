@@ -68,4 +68,12 @@ public class ChatController {
 		return ResponseEntity.ok(response);
 	}
 
+	@Operation(summary = "채팅방 판매자의 계정 ID 조회", description = "연결 상품 목록(/products/search?ownerAccountId=)을 불러올 때 쓴다. 참여자만 가능.")
+	@GetMapping("/{chatRoomId}/seller-account-id")
+	public ResponseEntity<Long> getSellerAccountId(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable Long chatRoomId) {
+		Long currentUserId = Long.valueOf(jwt.getSubject());
+		return ResponseEntity.ok(chatService.getSellerAccountId(chatRoomId, currentUserId));
+	}
 }

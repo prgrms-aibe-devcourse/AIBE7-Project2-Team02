@@ -83,10 +83,11 @@ public class QuoteNegotiationService {
 
 	@Transactional
 	public QuoteNegotiationResponse editDuringNegotiation(Long chatRoomId, Long currentUserId,
-	                                                      Integer quantity, Long unitPrice, Long deliveryFee) {
+	                                                      Integer quantity, Long unitPrice, Long deliveryFee,
+	                                                      String additionalNotes) {
 		QuoteNegotiation negotiation = findByChatRoomIdOrThrow(chatRoomId);
 		negotiation.validateFreeEdit(currentUserId, accounts.sellerIdForUserOrNull(currentUserId));
-		negotiation.applyEdit(quantity, unitPrice, deliveryFee);
+		negotiation.applyEdit(quantity, unitPrice, deliveryFee, additionalNotes);
 		return QuoteNegotiationResponse.from(negotiation);
 	}
 
@@ -110,12 +111,14 @@ public class QuoteNegotiationService {
 
 	@Transactional
 	public QuoteNegotiationResponse editAfterAiSummary(Long chatRoomId, Long currentUserId,
-	                                                   Integer quantity, Long unitPrice, Long deliveryFee) {
+	                                                   Integer quantity, Long unitPrice, Long deliveryFee,
+	                                                   String additionalNotes) {
 		QuoteNegotiation negotiation = findByChatRoomIdOrThrow(chatRoomId);
 		negotiation.validateFinalEdit(currentUserId, accounts.sellerIdForUserOrNull(currentUserId));
-		negotiation.applyEdit(quantity, unitPrice, deliveryFee);
+		negotiation.applyEdit(quantity, unitPrice, deliveryFee, additionalNotes);
 		return QuoteNegotiationResponse.from(negotiation);
 	}
+
 
 	@Transactional
 	public QuoteNegotiationResponse lockNegotiation(Long chatRoomId, Long currentUserId) {

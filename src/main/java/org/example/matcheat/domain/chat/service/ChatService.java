@@ -9,6 +9,7 @@ import org.example.matcheat.domain.chat.repository.ChatMessageRepository;
 import org.example.matcheat.domain.chat.repository.ChatRoomRepository;
 import org.example.matcheat.domain.account.service.TradeAccountValidationService;
 import org.example.matcheat.support.product.ProductOwnerLookup;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +67,18 @@ public class ChatService {
 	 * (프론트가 방의 기존 productId와 새로 들어온 productId를 비교해서 경고 문구를
 	 *  보여주고, 사용자가 확인한 뒤에만 그 API를 호출하는 흐름을 기대한다.)
 	 */
+	@Transactional
+	public ChatRoomResponse changeChatRoomProduct(Long chatRoomId, Long currentUserId, Long newProductId) {
+		ChatRoom chatRoom = getChatRoomEntity(chatRoomId);
+		chatRoom.validateParticipant(currentUserId, accounts.sellerIdForUserOrNull(currentUserId));
+
+		// 존재하지 않는 productId면 여기서 예외 (ProductOwnerLookup이 존재 검증 겸용)
+		productOwnerLookup.findOwnerAccountId(newProductId);
+
+		chatRoom.changeProduct(newProductId);
+		return ChatRoomResponse.from(chatRoom);
+	}
+
 	private ChatRoom getOrCreateChatRoomEntity(Long proposalId, ChatRoom.OriginType requestedOriginType,
 	                                           Long buyerId, Long sellerId, Long productId) {
 		ChatRoom.OriginType resolvedOriginType = (proposalId != null)
@@ -101,17 +114,6 @@ public class ChatService {
 	 * 프론트가 "이 방은 이미 다른 상품(OO)에 대해 진행 중입니다. 전환할까요?" 같은
 	 * 경고를 띄운 뒤, 사용자가 확인했을 때만 이 메서드를 호출해야 한다.
 	 */
-	@Transactional
-	public ChatRoomResponse changeChatRoomProduct(Long chatRoomId, Long currentUserId, Long newProductId) {
-		ChatRoom chatRoom = getChatRoomEntity(chatRoomId);
-		chatRoom.validateParticipant(currentUserId, accounts.sellerIdForUserOrNull(currentUserId));
-
-		// 존재하지 않는 productId면 여기서 예외 (ProductOwnerLookup이 존재 검증 겸용)
-		productOwnerLookup.findOwnerAccountId(newProductId);
-
-		chatRoom.changeProduct(newProductId);
-		return ChatRoomResponse.from(chatRoom);
-	}
 
 	@Transactional
 	public void closeChatRoom(Long chatRoomId) {
@@ -150,6 +152,24 @@ public class ChatService {
 				.sorted((left, right) -> compareNewestFirst(sortAt(left), sortAt(right)))
 				.toList();
 	}
+	private static java.time.LocalDateTime sortAt(ChatRoomResponse room) {
+		return room.getLastMessageAt() != null ? room.getLastMessageAt() : room.getCreatedAt();
+	}
 
+	private static int compareNewestFirst(java.time.LocalDateTime left, java.time.LocalDateTime right) {
+		if (left == null) {
+			return right == null ? 0 : 1;
+		}
+		if (right == null) {
+			return -1;
+		}
+		return right.compareTo(left);
+	}
+	@Transactional(readOnly = true)
+	public Long getSellerAccountId(Long chatRoomId, Long currentUserId) {
+		ChatRoom chatRoom = getChatRoomEntity(chatRoomId);
+		chatRoom.validateParticipant(currentUserId, accounts.sellerIdForUserOrNull(currentUserId));
+		return accounts.userIdForSellerId(chatRoom.getSellerId());
+	}
 }
 

@@ -47,7 +47,8 @@ public class QuoteNegotiationController {
 			@Valid @RequestBody QuoteNegotiationEditRequest request) {
 		Long currentUserId = Long.valueOf(jwt.getSubject());
 		return ResponseEntity.ok(quoteNegotiationService.editDuringNegotiation(
-				chatRoomId, currentUserId, request.getQuantity(), request.getUnitPrice(), request.getDeliveryFee()));
+				chatRoomId, currentUserId, request.getQuantity(), request.getUnitPrice(), request.getDeliveryFee(),
+				request.getAdditionalNotes()));
 	}
 
 	@Operation(summary = "AI 요약 실행 (채팅방당 1회 제한)", description = "채팅 협의 내용을 AI로 요약해 견적서에 반영한다. 이미 사용했다면 예외가 발생한다.")
@@ -64,7 +65,8 @@ public class QuoteNegotiationController {
 			@Valid @RequestBody QuoteNegotiationEditRequest request) {
 		Long currentUserId = Long.valueOf(jwt.getSubject());
 		return ResponseEntity.ok(quoteNegotiationService.editAfterAiSummary(
-				chatRoomId, currentUserId, request.getQuantity(), request.getUnitPrice(), request.getDeliveryFee()));
+				chatRoomId, currentUserId, request.getQuantity(), request.getUnitPrice(), request.getDeliveryFee(),
+				request.getAdditionalNotes()));
 	}
 
 	@Operation(summary = "최종 확인 및 잠금", description = "이후로는 완전히 수정 불가.")

@@ -94,6 +94,24 @@ async function authenticatedBlob(url) {
 // 유틸
 // ------------------------------------------------------------------
 
+// "1인당 예산 * 수량"이 기본 규칙. TOTAL을 고르면 총액을 수량으로 나눠서 1인 단가로 환산.
+function computeUnitPriceFromBudget(budget, budgetType, quantity) {
+    if (!budget || !quantity) return null;
+    if (budgetType === 'TOTAL') {
+        return Math.round(budget / quantity);
+    }
+    return Math.round(budget);
+}
+
+function updateComposeTotalPreview() {
+    const quantity = Number(el('quoteQuantity').value) || null;
+    const budget = Number(el('quoteBudget').value) || null;
+    const budgetType = el('quoteBudgetType').value;
+    const unitPrice = computeUnitPriceFromBudget(budget, budgetType, quantity);
+    const total = (unitPrice != null && quantity != null) ? unitPrice * quantity : null;
+    el('quoteComposeTotalAmount').textContent = total != null ? won(total) : '0원';
+}
+
 const won = (n) => `${Number(n ?? 0).toLocaleString('ko-KR')}원`;
 
 function formatDateTime(iso) {
@@ -258,7 +276,8 @@ async function selectRoom(roomId) {
         subscribeRoom(roomId);
 
         // [교체] 상품 목록 + 협상 견적서를 함께 로딩
-        await loadSellerProducts(room.sellerId);
+        // 기존: await loadSellerProducts(room.sellerId);
+        await loadSellerProducts(room.chatRoomId);
         await loadNegotiation(roomId);
     } catch (e) {
         showToast(e.message || '채팅방을 불러오지 못했습니다.', true);
@@ -452,11 +471,10 @@ function subscribeRoom(roomId) {
 //
 //
 
-// [확인 필요] 실제 상품 검색 API의 셀러 필터 파라미터명을 몰라서 sellerId로 가정함.
-// ProductController 스펙 확인되면 이 함수 하나만 고치면 된다.
-async function loadSellerProducts(sellerId) {
+async function loadSellerProducts(chatRoomId) {
     try {
-        const products = await api(`/products/search?sellerId=${sellerId}`);
+        const sellerAccountId = await api(`/chat-rooms/${chatRoomId}/seller-account-id`);
+        const products = await api(`/products/search?ownerAccountId=${sellerAccountId}`);
         state.sellerProducts = products || [];
     } catch (e) {
         state.sellerProducts = [];
@@ -465,7 +483,7 @@ async function loadSellerProducts(sellerId) {
 }
 
 function populateProductSelect() {
-    const select = el('quoteProductSelect');
+    const select = el('quoteProductId');
     select.innerHTML = '<option value="">상품 선택 안 함</option>';
     state.sellerProducts.forEach((p) => {
         const option = document.createElement('option');
@@ -479,9 +497,18 @@ function populateProductSelect() {
     updateProductNameDisplay(currentProductId);
 }
 
+function updateBudgetLabel() {
+    const type = el('quoteBudgetType').value;
+    el('quoteBudgetLabel').textContent =
+        type === 'TOTAL' ? '총 예산' : type === 'PER_PERSON' ? '1인당 예산' : '예산';
+}
+
 function updateProductNameDisplay(productId) {
     const product = state.sellerProducts.find((p) => p.id === Number(productId));
-    el('quoteProductName').textContent = product ? product.productName : '상품을 선택하세요';
+
+    const quoteItemNameEl = el('quoteItemName');
+    quoteItemNameEl.value = product ? product.productName : '';
+    quoteItemNameEl.readOnly = true; // readonly 속성 적용
 }
 
 async function onProductSelectChange(event) {
@@ -540,8 +567,7 @@ async function createNegotiation() {
 
 function fillFormFromNegotiation(n) {
     el('quoteQuantity').value = n.quantity ?? '';
-    el('quoteUnitPrice').value = n.unitPrice ?? '';
-    el('quoteTotalDisplay').textContent = n.totalAmount != null ? won(n.totalAmount) : '-';
+    el('quoteComposeTotalAmount').textContent = n.totalAmount != null ? won(n.totalAmount) : '0원';
 
     const notesEl = el('quoteDetailNotes');
     if (n.additionalNotes) {
@@ -580,33 +606,35 @@ function renderQuoteCard() {
     fillFormFromNegotiation(n);
 
     const readOnly = n.status === 'LOCKED';
-    ['quoteQuantity', 'quoteUnitPrice', 'quoteEventDateTime', 'quoteBudgetType',
-        'quoteBudget', 'quoteDeliveryAddress', 'quoteDescription', 'quoteProductSelect']
+    ['quoteQuantity', 'quoteEventDateTime', 'quoteBudgetType',
+        'quoteBudget', 'quoteDeliveryAddress', 'quoteDescription', 'quoteProductId']
         .forEach((id) => { el(id).disabled = readOnly; });
 
     renderQuoteActions(n);
 }
 
 function collectNegotiationEditPayload() {
-    // 기존 sendNewQuote와 동일하게, 구조화 안 되는 항목은 additionalNotes로 합친다.
-    const eventDateTime = el('quoteEventDateTime').value;
+    const quantity = Number(el('quoteQuantity').value) || null;
     const budgetType = el('quoteBudgetType').value;
-    const budget = el('quoteBudget').value;
+    const budget = Number(el('quoteBudget').value) || null;
+    const eventDateTime = el('quoteEventDateTime').value;
     const deliveryAddress = el('quoteDeliveryAddress').value.trim();
     const description = el('quoteDescription').value.trim();
+
+    const unitPrice = computeUnitPriceFromBudget(budget, budgetType, quantity);
 
     const notesParts = [];
     if (eventDateTime) notesParts.push(`행사/이용 일시: ${eventDateTime}`);
     if (budgetType) notesParts.push(`예산 유형: ${budgetType === 'PER_PERSON' ? '1인당' : '총액'}`);
-    if (budget) notesParts.push(`예산: ${won(Number(budget))}`);
+    if (budget) notesParts.push(`예산: ${won(budget)}`);
     if (deliveryAddress) notesParts.push(`배송(행사) 주소: ${deliveryAddress}`);
     if (description) notesParts.push(`상세 설명: ${description}`);
 
     return {
-        quantity: Number(el('quoteQuantity').value) || null,
-        unitPrice: Number(el('quoteUnitPrice').value) || null,
-        // [확인 필요] 이 폼엔 배송비 전용 입력칸이 없어서, 기존 협상 값을 그대로 유지한다.
+        quantity,
+        unitPrice,
         deliveryFee: state.negotiation?.deliveryFee ?? null,
+        additionalNotes: notesParts.length ? notesParts.join('\n') : null,
     };
 }
 
@@ -722,9 +750,18 @@ function bindEvents() {
         event.target.value = '';
     });
 
-    el('quoteProductSelect').addEventListener('change', onProductSelectChange);
+    ['quoteQuantity', 'quoteBudget', 'quoteBudgetType'].forEach((id) => {
+        el(id).addEventListener('input', updateComposeTotalPreview);
+        el(id).addEventListener('change', updateComposeTotalPreview);
+    });
+    el('quoteBudgetType').addEventListener('change', updateBudgetLabel);
+    el('quoteProductId').addEventListener('change', onProductSelectChange);
     el('quoteComposeToggle').addEventListener('click', createNegotiation);
-    el('quoteComposeForm').addEventListener('submit', (e) => e.preventDefault()); // 버튼들이 각자 처리하므로 기본 제출 막기
+    el('quoteComposeForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!state.negotiation) return;
+        await saveNegotiationEdit();
+    });
 
     el('newChatToggle').addEventListener('click', () => {
         el('newChatForm').hidden = !el('newChatForm').hidden;
