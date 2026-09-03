@@ -55,6 +55,12 @@ public class UserAccountEntity {
     @Column(name = "withdrawn_at")
     private Instant withdrawnAt;
 
+    @Column(name = "manual_suspension", nullable = false)
+    private boolean manualSuspension;
+
+    @Column(name = "manual_suspension_reason", length = 500)
+    private String manualSuspensionReason;
+
     protected UserAccountEntity() {
     }
 
@@ -81,18 +87,48 @@ public class UserAccountEntity {
         this.name = name;
     }
 
+    public void changePassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+        tokenVersion++;
+    }
+
     public void withdraw(Instant withdrawnAt) {
         status = UserStatus.WITHDRAWN;
         this.withdrawnAt = withdrawnAt;
         tokenVersion++;
     }
 
-    public void changeStatus(UserStatus targetStatus) {
+    public void changeStatus(UserStatus targetStatus, String suspensionReason) {
         if (targetStatus == UserStatus.SUSPENDED && status != UserStatus.SUSPENDED) {
             tokenVersion++;
         }
         status = targetStatus;
+        manualSuspension = targetStatus == UserStatus.SUSPENDED;
+        manualSuspensionReason = manualSuspension ? suspensionReason : null;
     }
+
+    public void changeStatus(UserStatus targetStatus) {
+        changeStatus(targetStatus, targetStatus == UserStatus.SUSPENDED ? "관리자 수동 정지" : null);
+    }
+
+    public void suspendForPenalty() {
+        if (status != UserStatus.SUSPENDED) {
+            tokenVersion++;
+        }
+        status = UserStatus.SUSPENDED;
+    }
+
+    public void activateAfterPenalty() {
+        if (!manualSuspension && status == UserStatus.SUSPENDED) {
+            status = UserStatus.ACTIVE;
+        }
+    }
+
+    public boolean manualSuspension() {
+        return manualSuspension;
+    }
+
+    public String manualSuspensionReason() { return manualSuspensionReason; }
 
     public void promoteToSeller() {
         if (role == UserRole.SELLER) {

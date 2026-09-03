@@ -320,6 +320,15 @@ public class ProductEntity {
     }
 
     /**
+     * 이 상품에 달린 리뷰들을 기준으로 재계산된 평점으로 덮어쓴다.
+     * domain/review가 리뷰를 새로 저장할 때마다 호출하며, 증분 계산이 아니라
+     * 매번 그 상품의 리뷰 전체를 다시 평균 낸 값을 그대로 반영한다.
+     */
+    public void updateRatingAvg(Double ratingAvg) {
+        this.ratingAvg = ratingAvg;
+    }
+
+    /**
      * 요청자가 이 판매 조건의 소유자인지 검증한다.
      */
     private void verifyOwner(Long requesterAccountId) {

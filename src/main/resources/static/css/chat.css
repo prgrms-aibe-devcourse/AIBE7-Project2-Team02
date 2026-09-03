@@ -606,3 +606,6 @@
         max-height: 220px;
     }
 }
+.chat-room-tools { display: flex; align-items: center; gap: 10px; }
+.chat-report-link { color: #9a4530; font-size: .75rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.chat-report-link[hidden] { display: none; }

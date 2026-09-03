@@ -18,7 +18,7 @@ const adapters = {
 };
 
 const sourceLabels = {
-    requests: '등록 주문',
+    requests: '구매 요청',
     products: '등록 상품',
     purchases: '구매 거래',
     sales: '판매 거래',
@@ -31,6 +31,7 @@ const sourceLabels = {
 
 export const mypageViews = Object.freeze({
     profile: {title: '계정 개요', kicker: 'ACCOUNT', sources: []},
+    reports: {title: '신고 및 문의', kicker: 'REPORTS', sources: []},
     requests: {
         title: '등록 관리',
         kicker: 'REGISTRATION',
@@ -121,7 +122,7 @@ export const mypageViews = Object.freeze({
             {
                 key: 'purchases',
                 label: '구매 거래',
-                endpoint: '/api/v1/orders/purchases',
+                endpoint: '/api/v1/orders/purchases?page=0&size=100',
             },
         ],
     },
@@ -155,7 +156,7 @@ export const mypageViews = Object.freeze({
             {
                 key: 'sales',
                 label: '판매 거래',
-                endpoint: '/api/v1/orders/sales',
+                endpoint: '/api/v1/orders/sales?page=0&size=100',
                 sellerOnly: true,
             },
         ],
@@ -271,13 +272,19 @@ export const mypageViews = Object.freeze({
     offers: {
         title: '제안 관리',
         kicker: 'PROPOSALS',
-        sources: [],
+        empty: ['주고받은 제안이 없습니다.', '제안이나 견적 요청이 생성되면 이곳에 표시됩니다.'],
+        sources: [
+            {key: 'receivedOffers', label: '받은 제안', endpoint: '/api/v1/proposals/received?page=0&size=100'},
+            {key: 'sentOffers', label: '보낸 제안', endpoint: '/api/v1/proposals/sent?page=0&size=100', sellerOnly: true},
+            {key: 'receivedEstimates', label: '받은 견적', endpoint: '/api/v1/estimates/received', sellerOnly: true},
+            {key: 'sentEstimates', label: '보낸 견적', endpoint: '/api/v1/estimates/sent'},
+        ],
     },
     chats: {
         title: '채팅',
         kicker: 'CHATS',
         empty: ['참여 중인 채팅방이 없습니다.', '거래 대화가 시작되면 채팅방 요약이 이곳에 표시됩니다.'],
-        sources: [{key: 'chats', label: '채팅', endpoint: '/api/v1/chat-rooms'}],
+        sources: [{key: 'chats', label: '채팅', endpoint: '/api/v1/chat-rooms?page=0&size=100'}],
     },
 });
 
@@ -291,12 +298,7 @@ export function adaptMypagePayload(sourceKey, payload) {
     const records = extractRecords(payload);
 
     // 거래 내역에서는 최종 견적서가 생성된 거래만 표시한다.
-    const visibleRecords =
-        sourceKey === 'purchases' || sourceKey === 'sales'
-            ? records.filter(isCompletedTradeRecord)
-            : records;
-
-    return visibleRecords.map((record) => ({
+    return records.map((record) => ({
         ...adapter(record),
         sourceKey,
         sourceLabel: sourceLabels[sourceKey] || sourceKey,
@@ -420,6 +422,11 @@ function adaptTradeActivity(record, perspective) {
     const sourceId = value(record, 'sourceId', 'quoteId', 'id');
     const state = tradeDisplayState(record);
     const href = tradeActivityHref(record);
+    const paymentId = value(record, 'paymentId');
+    const reviewPaymentId =
+        perspective === 'purchase' && state.code === 'COMPLETED' && paymentId
+            ? paymentId
+            : null;
     const view = viewRecord(
         `${perspective}-${id}`,
         value(record, 'itemName', 'title', 'requestTitle', 'productName')
@@ -439,6 +446,9 @@ function adaptTradeActivity(record, perspective) {
         href,
         href ? '거래 보기' : '',
         value(record, 'paidAt', 'createdAt', 'eventDateTime'),
+        reviewPaymentId,
+        sourceType,
+        sourceId,
     );
 
     return {
@@ -463,7 +473,7 @@ function tradeDisplayState(record) {
     if (paymentStatus === 'COMPLETED') {
         return {
             code: 'COMPLETED',
-            label: '거래 완료',
+            label: '완료',
         };
     }
 
@@ -493,15 +503,7 @@ function tradeDisplayState(record) {
     }
 
     if (sourceType === 'PROPOSAL') {
-        return direction === 'SENT'
-            ? {
-                code: 'PROPOSED',
-                label: '제안 보냄',
-            }
-            : {
-                code: 'PROPOSED',
-                label: '제안 받음',
-            };
+        return {code: 'PROPOSED', label: '제안'};
     }
 
     if (sourceType === 'ESTIMATE') {
@@ -574,6 +576,9 @@ function adaptOffer(record, direction) {
         requestId ? `/requests/${encodeURIComponent(requestId)}` : '/proposals',
         requestId ? '주문 보기' : '제안 보기',
         value(record, 'createdAt', 'proposedAt'),
+        null,
+        'PROPOSAL',
+        id,
     );
 }
 
@@ -593,6 +598,9 @@ function adaptEstimate(record, direction) {
         id ? `/estimates/${encodeURIComponent(id)}` : '',
         '요청 상세',
         value(record, 'createdAt', 'eventDateTime'),
+        null,
+        'ESTIMATE',
+        id,
     );
 }
 
@@ -614,10 +622,16 @@ function adaptChatRoom(record) {
         id ? `/chat?roomId=${encodeURIComponent(id)}` : '/chat',
         '채팅 열기',
         value(record, 'lastMessageAt', 'updatedAt', 'createdAt'),
+        null,
+        'CHAT_ROOM',
+        id,
     );
 }
 
-function viewRecord(key, title, status, detail, meta, href = '', actionLabel = '', sortValue = '') {
+function viewRecord(
+    key, title, status, detail, meta, href = '', actionLabel = '', sortValue = '',
+    reviewPaymentId = null, reportTargetType = null, reportTargetId = null
+) {
     const statusCode = status || 'ACTIVE';
     return {
         key,
@@ -629,6 +643,9 @@ function viewRecord(key, title, status, detail, meta, href = '', actionLabel = '
         href,
         actionLabel,
         sortAt: timestamp(sortValue),
+        reviewPaymentId,
+        reportTargetType,
+        reportTargetId,
     };
 }
 

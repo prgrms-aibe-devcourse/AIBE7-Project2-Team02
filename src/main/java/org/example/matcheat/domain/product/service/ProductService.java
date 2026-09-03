@@ -296,6 +296,21 @@ public class ProductService {
     }
 
     /**
+     * 상품의 평점을 새 값으로 덮어쓴다. domain/review가 리뷰를 저장할 때마다
+     * 그 상품의 리뷰 전체를 다시 평균 낸 값을 넘겨 호출하며, 여기서는 검증 없이 그대로 반영한다.
+     * 응답 DTO 없이 내부 갱신만 하는 메소드라 다른 도메인이 직접 써도 안전하다.
+     */
+    @Transactional
+    public void refreshRatingAvg(Long id, Double ratingAvg) {
+        ProductEntity product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 판매 조건입니다. id=%s".formatted(id)
+                ));
+
+        product.updateRatingAvg(ratingAvg);
+    }
+
+    /**
      * 문자열 파라미터를 정수로 파싱한다. 비어있으면 null, 숫자가 아니면 예외를 던진다.
      */
     private Integer parseNullableInteger(String value) {

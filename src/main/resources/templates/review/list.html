@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>판매자 리뷰 | MatchEAT</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/review.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header}"></header>
+
+<main>
+    <div class="review-page">
+        <section class="review-page-header">
+            <p class="review-page-kicker">거래 후기</p>
+            <h1>판매자 리뷰</h1>
+        </section>
+
+        <p class="review-list-summary" id="subtitle">불러오는 중...</p>
+
+        <div id="reviewList"></div>
+    </div>
+</main>
+
+<script type="module">
+    import { authFetch, readApiBody, readCurrentUserId } from "/account/js/auth-client.js";
+
+    const subtitle = document.getElementById("subtitle");
+    const reviewList = document.getElementById("reviewList");
+
+    if (readCurrentUserId() === null) {
+        const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/login?redirect=${redirect}`;
+    }
+
+    const sellerId = new URLSearchParams(window.location.search).get("sellerId");
+
+    function stars(rating) {
+        return "★".repeat(rating) + "☆".repeat(5 - rating);
+    }
+
+    function formatDate(value) {
+        return value ? new Date(value).toLocaleString() : "-";
+    }
+
+    function renderReviews(reviews) {
+        if (!reviews.length) {
+            reviewList.innerHTML = `<div class="empty-state"><p>아직 작성된 리뷰가 없습니다.</p></div>`;
+            return;
+        }
+
+        reviewList.innerHTML = reviews.map(review => `
+            <article class="review-list-item">
+                <div class="review-list-head">
+                    <span class="review-list-item-name">${review.itemName ?? "-"}</span>
+                    <span class="review-list-stars">${stars(review.rating)}</span>
+                </div>
+                <div class="review-list-date">${formatDate(review.createdAt)}</div>
+                <p class="review-list-content">${review.content ?? ""}</p>
+                ${review.imageUrl ? `<img class="review-list-image" src="${encodeURI(review.imageUrl)}" alt="리뷰 이미지">` : ""}
+            </article>
+        `).join("");
+    }
+
+    async function loadReviews() {
+        if (!sellerId) {
+            subtitle.textContent = "판매자 정보가 없습니다.";
+            return;
+        }
+
+        try {
+            const response = await authFetch(`/api/v1/reviews?sellerId=${sellerId}`);
+            const reviews = await readApiBody(response);
+
+            if (!response.ok) {
+                throw new Error(reviews?.message ?? "리뷰를 불러오지 못했습니다.");
+            }
+
+            const average = reviews.length
+                ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+                : "-";
+
+            subtitle.textContent = `총 ${reviews.length}개 리뷰 · 평균 ${average}점`;
+            renderReviews(reviews);
+        } catch (error) {
+            subtitle.textContent = error.message;
+        }
+    }
+
+    loadReviews();
+</script>
+</body>
+</html>

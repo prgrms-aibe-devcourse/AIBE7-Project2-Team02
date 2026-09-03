@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>계정 이용 제한 | MatchEAT</title>
+    <link rel="stylesheet" href="/css/common.css"><link rel="stylesheet" href="/account/css/account-auth.css">
+</head>
+<body><main class="account-auth-shell"><section class="account-auth-card">
+    <p class="eyebrow">ACCOUNT SUSPENDED</p><h1>계정 이용이 제한되었습니다</h1>
+    <p><strong>정지 사유</strong><br><span data-suspension-reason>확인 중입니다.</span></p>
+    <p><strong>정지 기한</strong><br><span data-suspension-period>-</span></p>
+    <form data-appeal-form novalidate>
+        <input name="email" type="email" autocomplete="username" hidden>
+        <label for="appeal-password">본인 확인 비밀번호</label>
+        <input id="appeal-password" name="password" type="password" autocomplete="current-password" required>
+        <label for="appeal-message">관리자에게 해명하기</label>
+        <textarea id="appeal-message" name="message" maxlength="2000" required></textarea>
+        <p data-appeal-message role="status"></p><button type="submit">해명 메시지 보내기</button>
+    </form><a href="/login">로그인으로 돌아가기</a>
+</section></main><script type="module" src="/account/js/suspended.js"></script></body>
+</html>

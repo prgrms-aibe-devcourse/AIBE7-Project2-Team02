@@ -2,11 +2,14 @@ import { authFetch, readApiBody, readAccessToken } from './auth-client.js';
 
 const viewKey = location.pathname.endsWith('/users')
   ? 'users'
-  : location.pathname.endsWith('/sellers') ? 'sellers' : 'dashboard';
+  : location.pathname.endsWith('/sellers')
+    ? 'sellers'
+    : location.pathname.endsWith('/reports') ? 'reports' : 'dashboard';
 const viewLabels = {
   dashboard: ['OVERVIEW', '운영 현황'],
   users: ['MEMBERS', '회원 관리'],
   sellers: ['SELLER REVIEW', '판매자 심사'],
+  reports: ['REPORT DESK', '신고함'],
 };
 let rejectionTarget = null;
 
@@ -20,6 +23,8 @@ if (profile.role !== 'ADMIN') {
   window.location.replace('/');
   throw new Error('Administrator role required');
 }
+
+await loadPendingReportBadge();
 
 document.querySelector('[data-admin-identity]').textContent = `${profile.name} · ${profile.email}`;
 document.querySelector(`[data-admin-view="${viewKey}"]`)?.setAttribute('aria-current', 'page');
@@ -42,6 +47,13 @@ if (viewKey === 'sellers') {
   });
   configureRejectionDialog();
   await loadSellers(0);
+}
+if (viewKey === 'reports') {
+  document.querySelector('[data-report-filter]').addEventListener('submit', (event) => {
+    event.preventDefault();
+    loadReports(0);
+  });
+  await loadReports(0);
 }
 
 async function loadDashboard() {
@@ -83,12 +95,14 @@ function userRow(user) {
   button.disabled = user.status === 'WITHDRAWN';
   button.addEventListener('click', async () => {
     const target = user.status === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
+    const reason = target === 'SUSPENDED' ? prompt('정지 사유를 입력하세요. (최대 500자)') : null;
+    if (target === 'SUSPENDED' && (!reason || !reason.trim())) return;
     if (!confirm(`${user.name} 회원을 ${target === 'ACTIVE' ? '활성화' : '정지'}하시겠습니까?`)) return;
     button.disabled = true;
     const changed = await request(`/api/v1/admin/users/${user.userId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: target }),
+      body: JSON.stringify({ status: target, reason }),
     });
     if (changed) await loadUsers(0);
     else button.disabled = false;
@@ -169,6 +183,177 @@ async function reviewSeller(sellerId, status, rejectionReason) {
   });
 }
 
+async function loadReports(page) {
+  startLoading();
+  const status = new FormData(document.querySelector('[data-report-filter]')).get('status');
+  const query = new URLSearchParams({ page, size: 12 });
+  if (status) query.set('status', status);
+  const result = await request(`/api/v1/admin/reports?${query}`);
+  if (!result) return;
+  document.querySelector('[data-report-rows]').replaceChildren(...result.content.map(reportCard));
+  document.querySelector('[data-report-empty]').hidden = result.content.length !== 0;
+  renderPagination(document.querySelector('[data-report-pagination]'), result, loadReports);
+  finishLoading();
+}
+
+function reportCard(report) {
+  const card = document.createElement('article');
+  card.className = 'admin-report-card';
+  const heading = document.createElement('div');
+  const identity = document.createElement('div');
+  const title = document.createElement('h3');
+  title.textContent = report.title;
+  identity.append(title, memberBlock(report.reporterName, report.reporterEmail));
+  heading.append(identity, stateBadge(report.status));
+
+  const message = paragraph(report.message);
+  message.className = 'admin-report-message';
+  const meta = paragraph(`접수 ${formatDateTime(report.createdAt)}`);
+  meta.className = 'admin-report-meta';
+  card.append(heading, message, meta);
+  if (report.reportedUserId) {
+    const reported = paragraph(`피신고자 회원 #${report.reportedUserId}`);
+    reported.className = 'admin-report-target';
+    card.append(reported);
+  }
+  if (report.targetType && report.targetId) {
+    const target = paragraph(`신고 대상: ${reportTargetLabel(report.targetType)} #${report.targetId}`);
+    target.className = 'admin-report-target';
+    card.append(target);
+  }
+
+  if (report.targetSnapshot) {
+    const snapshot = paragraph(report.targetSnapshot);
+    snapshot.className = 'admin-report-response';
+    card.append(snapshot);
+  }
+  const evidenceButton = actionButton('첨부 증거 보기', '');
+  evidenceButton.addEventListener('click', async () => {
+    const files = await request(`/api/v1/admin/reports/${report.reportId}/attachments`);
+    if (!files?.length) return fail('첨부된 증거 이미지가 없습니다.');
+    for (const file of files) {
+      const response = await authFetch(`/api/v1/admin/reports/attachments/${file.attachmentId}`);
+      if (response.ok) window.open(URL.createObjectURL(await response.blob()), '_blank', 'noopener');
+    }
+  });
+  card.append(evidenceButton);
+
+  if (report.adminResponse) {
+    const previous = paragraph(`관리자 답변: ${report.adminResponse}`);
+    previous.className = 'admin-report-response';
+    card.append(previous);
+  }
+  if (report.status !== 'RESOLVED' && report.status !== 'REJECTED') {
+    const form = document.createElement('form');
+    form.className = 'admin-report-form';
+    const select = document.createElement('select');
+    select.name = 'status';
+    select.append(new Option('검토 중', 'IN_REVIEW'), new Option('처리 완료', 'RESOLVED'), new Option('반려', 'REJECTED'));
+    select.value = report.status === 'PENDING' ? 'IN_REVIEW' : report.status;
+    const textarea = document.createElement('textarea');
+    textarea.name = 'adminResponse';
+    textarea.maxLength = 2000;
+    textarea.placeholder = '처리 완료 또는 반려 시 답변을 입력하세요.';
+    const button = actionButton('상태 저장', 'is-approve');
+    button.type = 'submit';
+    form.append(select, textarea, button);
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const changed = await request(`/api/v1/admin/reports/${report.reportId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: select.value, adminResponse: textarea.value }),
+      });
+      if (changed) {
+        await loadPendingReportBadge();
+        await loadReports(0);
+      }
+    });
+    card.append(form);
+  }
+  if (report.status === 'RESOLVED' && report.reportedUserId) {
+    const penaltyForm = document.createElement('form');
+    penaltyForm.className = 'admin-report-form';
+    const days = document.createElement('select');
+    [1, 3, 7, 15, 30].forEach(value => days.append(new Option(`${value}일 정지`, value)));
+    const reason = document.createElement('textarea');
+    reason.maxLength = 500;
+    reason.placeholder = '제재 사유';
+    const submit = actionButton('기간 정지 적용', 'is-danger');
+    submit.type = 'submit';
+    penaltyForm.append(days, reason, submit);
+    penaltyForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const result = await request(`/api/v1/admin/reports/${report.reportId}/penalties`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days: Number(days.value), reason: reason.value }),
+      });
+      if (result) submit.disabled = true;
+    });
+    card.append(penaltyForm);
+  }
+  const historyButton = actionButton('처리 이력 보기', '');
+  historyButton.classList.add('admin-history-button');
+  const history = document.createElement('ol');
+  history.className = 'admin-report-history';
+  history.hidden = true;
+  historyButton.addEventListener('click', async () => {
+    if (history.dataset.loaded !== 'true') {
+      const entries = await request(`/api/v1/admin/reports/${report.reportId}/history`);
+      if (!entries) return;
+      history.replaceChildren(...entries.map(historyItem));
+      history.dataset.loaded = 'true';
+    }
+    history.hidden = !history.hidden;
+    historyButton.textContent = history.hidden ? '처리 이력 보기' : '처리 이력 닫기';
+  });
+  card.append(historyButton, history);
+  return card;
+}
+
+function historyItem(entry) {
+  const item = document.createElement('li');
+  const transition = entry.previousStatus
+    ? `${reportStatusLabel(entry.previousStatus)} → ${reportStatusLabel(entry.newStatus)}`
+    : `${reportStatusLabel(entry.newStatus)} 접수`;
+  const title = document.createElement('strong');
+  title.textContent = transition;
+  const meta = document.createElement('span');
+  meta.textContent = `${formatDateTime(entry.changedAt)} · 처리자 #${entry.actorId}`;
+  item.append(title, meta);
+  if (entry.adminResponse) item.append(paragraph(entry.adminResponse));
+  return item;
+}
+
+function reportStatusLabel(status) {
+  return { PENDING: '접수', IN_REVIEW: '검토 중', RESOLVED: '처리 완료', REJECTED: '반려' }[status] || status;
+}
+
+async function loadPendingReportBadge() {
+  try {
+    const response = await authFetch('/api/v1/admin/reports?status=PENDING&page=0&size=1');
+    if (!response.ok) return;
+    const result = await response.json();
+    const count = Number(result.totalElements) || 0;
+    const badge = document.querySelector('[data-report-badge]');
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.hidden = count === 0;
+  } catch {
+    // The badge is supplemental; the reports page keeps its own error handling.
+  }
+}
+
+function reportTargetLabel(targetType) {
+  return {
+    ORDER_REQUEST: '구매 요청',
+    PROPOSAL: '제안',
+    ESTIMATE: '견적 요청',
+    QUOTE: '견적 거래',
+    CHAT_ROOM: '채팅방',
+    PRODUCT: '상품',
+  }[targetType] || targetType;
+}
+
 async function request(url, options) {
   const response = await authFetch(url, options);
   if (response.status === 401) redirectToLogin();
@@ -240,6 +425,10 @@ function paragraph(value) {
 
 function formatDate(value) {
   return value ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(new Date(value)) : '-';
+}
+
+function formatDateTime(value) {
+  return value ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
 }
 
 function startLoading() {

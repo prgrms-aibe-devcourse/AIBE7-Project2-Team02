@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>리뷰 작성 | MatchEAT</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/review.css}">
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header}"></header>
+
+<main>
+    <div class="review-page">
+        <section class="review-page-header">
+            <p class="review-page-kicker">거래 후기</p>
+            <h1>리뷰 작성</h1>
+            <p>거래가 완료된 판매자에게 별점과 리뷰를 남겨주세요.</p>
+        </section>
+
+        <div id="notEligibleNotice" class="review-notice">
+            이 결제 건은 지금 리뷰를 작성할 수 없습니다. (결제 완료 전이거나, 이미 작성한 리뷰가 있어요)
+        </div>
+
+        <form id="reviewForm" class="review-form-card">
+            <div class="review-field">
+                <label>별점</label>
+                <div class="review-stars">
+                    <input type="radio" name="rating" id="star5" value="5"><label for="star5">★</label>
+                    <input type="radio" name="rating" id="star4" value="4"><label for="star4">★</label>
+                    <input type="radio" name="rating" id="star3" value="3" checked><label for="star3">★</label>
+                    <input type="radio" name="rating" id="star2" value="2"><label for="star2">★</label>
+                    <input type="radio" name="rating" id="star1" value="1"><label for="star1">★</label>
+                </div>
+            </div>
+
+            <div class="review-field">
+                <label for="content">리뷰 내용</label>
+                <textarea id="content" placeholder="거래는 어떠셨나요? 판매자에게 도움이 될 후기를 남겨주세요." required></textarea>
+            </div>
+
+            <div class="review-field">
+                <label for="imageFile">사진 첨부(선택)</label>
+                <input type="file" id="imageFile" accept="image/*">
+            </div>
+
+            <div class="review-form-actions">
+                <button type="submit" class="button" id="submitBtn">리뷰 등록</button>
+                <a class="button button-outline" th:href="@{/}">취소</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script type="module">
+    import { authFetch, readApiBody, readCurrentUserId } from "/account/js/auth-client.js";
+
+    const reviewForm = document.getElementById("reviewForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const notEligibleNotice = document.getElementById("notEligibleNotice");
+
+    if (readCurrentUserId() === null) {
+        const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/login?redirect=${redirect}`;
+    }
+
+    const paymentId = new URLSearchParams(window.location.search).get("paymentId");
+
+    if (!paymentId) {
+        notEligibleNotice.textContent = "결제 정보가 없습니다. 결제 내역 화면에서 다시 시도해주세요.";
+        notEligibleNotice.style.display = "block";
+        submitBtn.disabled = true;
+    } else {
+        checkEligibility(paymentId);
+    }
+
+    async function checkEligibility(id) {
+        try {
+            const response = await authFetch(`/api/v1/reviews/eligibility?paymentId=${id}`);
+            const eligibility = await readApiBody(response);
+
+            if (!response.ok) {
+                throw new Error(eligibility?.message ?? "리뷰 작성 가능 여부를 확인하지 못했습니다.");
+            }
+
+            if (!eligibility.eligible) {
+                notEligibleNotice.style.display = "block";
+                submitBtn.disabled = true;
+            }
+        } catch (error) {
+            notEligibleNotice.textContent = error.message;
+            notEligibleNotice.style.display = "block";
+            submitBtn.disabled = true;
+        }
+    }
+
+    reviewForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const rating = Number(reviewForm.querySelector('input[name="rating"]:checked').value);
+        const requestData = {
+            paymentId: Number(paymentId),
+            rating: rating,
+            content: document.getElementById("content").value
+        };
+
+        const formData = new FormData();
+        formData.append("review", new Blob([JSON.stringify(requestData)], { type: "application/json" }));
+
+        const imageFile = document.getElementById("imageFile").files?.[0];
+        if (imageFile) {
+            formData.append("imageFile", imageFile);
+        }
+
+        submitBtn.disabled = true;
+
+        try {
+            const response = await authFetch("/api/v1/reviews", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await readApiBody(response);
+
+            if (!response.ok) {
+                throw new Error(data?.message ?? "리뷰 등록에 실패했습니다.");
+            }
+
+            alert("리뷰가 정상적으로 등록되었습니다.");
+            window.location.href = "/";
+        } catch (error) {
+            alert(error.message);
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
