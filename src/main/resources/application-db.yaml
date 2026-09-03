@@ -13,6 +13,10 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
 ---
 spring:
   config:

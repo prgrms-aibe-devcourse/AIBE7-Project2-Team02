@@ -1,1 +1,10 @@
 rootProject.name = 'MatchEAT'
+
+// The former standalone account prototype is retained for reference only.
+// Fail fast if it is accidentally reintroduced into the production build.
+gradle.settingsEvaluated { evaluatedSettings ->
+    if (evaluatedSettings.findProject(':login-account-management') != null) {
+        throw new GradleException(
+                'modules/login-account-management is a legacy standalone build and must not be included in MatchEAT')
+    }
+}

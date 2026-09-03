@@ -1,10 +1,10 @@
-# Login Account Management Integration
+# Login Account Management Isolation
 
 ## Module status
 
-`modules/login-account-management` is the only source of account module Java code. Do not copy the same sources into the root `src` tree.
+`modules/login-account-management` is an archived standalone prototype. The production source of truth is `src/main/java/org/example/matcheat/domain/account`.
 
-The required implementation covers signup, email availability, login, JWT issuing and verification support, account entities, administrator bootstrap, and functional mock pages. Profile and administrator CRUD are extension ports only.
+Do not include this directory from the root `settings.gradle`, add it as a root project dependency, copy its Spring beans into the production application, or merge its security snippet into `SecurityConfig`.
 
 ## Isolated build
 
@@ -17,34 +17,14 @@ $env:GRADLE_USER_HOME="$PWD\.gradle-account-module"
 
 The dedicated cache path avoids contention with another Gradle process using the default user cache.
 
-## Root integration
+## Production boundary
 
-Coordinate these edits before applying them because the target files are shared by the team.
+- Root account source: `src/main/java/org/example/matcheat/domain/account`
+- Root security chain: `src/main/java/org/example/matcheat/config/SecurityConfig.java`
+- Root account tests: `src/test/java/org/example/matcheat/domain/account`
+- Root security tests: `src/test/java/org/example/matcheat/config/SecurityConfigMvcTest.java`
 
-1. Merge `root-settings.gradle.snippet` into the root `settings.gradle`.
-2. Merge `root-build.gradle.snippet` into the root `build.gradle` dependencies.
-3. Copy the content of `application-account.example.yaml` into `src/main/resources/application-account.yaml`.
-4. Copy the content of `application-db.example.yaml` into `src/main/resources/application-db.yaml`, unless the team already owns that file.
-5. Merge `security-config.snippet` into the application's single `SecurityFilterChain`.
-6. Merge the following profile selection into the existing root `application.yaml` without replacing other settings.
-
-```yaml
-spring:
-  profiles:
-    active: local,db,account
-
----
-spring:
-  config:
-    # The local profile enables this import; config.import performs the actual .env read.
-    activate:
-      on-profile: local
-    import: optional:file:.env[.properties]
-```
-
-7. Create the root `.env` from `env.example`. Never commit its values.
-8. Apply `auth-schema.sql` manually or move it into the team's central Flyway migration sequence.
-9. Run the full root build and tests.
+The files under `integration` are retained as historical design references. Their Gradle and security snippets are deliberately disabled.
 
 ## JWT secret generation
 
@@ -59,9 +39,9 @@ Generate at least 32 random bytes and store their Base64 representation as `JWT_
 - Access tokens expire after one hour by default and cannot be revoked immediately in this module version.
 - A suspended or withdrawn user's already-issued token can remain usable until expiration. Refresh tokens and token-version checks are deferred.
 
-## Database ownership
+## Historical database ownership
 
-This module owns `users` and `seller_profiles`. Other modules should reference their primary keys and must not redefine these tables or JPA entities.
+The production root account domain owns `users` and `seller_profiles`. This legacy module must never manage the production schema.
 
 Flyway adoption remains a team decision. Until then, `auth-schema.sql` is the authoritative schema contract and the module does not force `ddl-auto=update`.
 

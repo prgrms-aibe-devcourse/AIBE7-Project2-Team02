@@ -1,30 +1,4 @@
-// Merge these arguments and rules into the application's single SecurityFilterChain.
-@Bean
-SecurityFilterChain securityFilterChain(
-        HttpSecurity http,
-        @Qualifier("accountJwtDecoder") JwtDecoder accountJwtDecoder,
-        @Qualifier("accountJwtAuthenticationConverter")
-        Converter<Jwt, AbstractAuthenticationToken> accountJwtAuthenticationConverter) throws Exception {
-    http
-            .csrf(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable)
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers(
-                            "/", "/login", "/signup",
-                            "/account/**",
-                            "/api/v1/auth/login",
-                            "/api/v1/auth/signup",
-                            "/api/v1/auth/email-availability")
-                    .permitAll()
-                    .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/**").authenticated()
-                    .anyRequest().permitAll())
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt
-                    .decoder(accountJwtDecoder)
-                    .jwtAuthenticationConverter(accountJwtAuthenticationConverter)));
-    return http.build();
-}
+// DISABLED: historical integration snippet.
+// The production filter chain is maintained only in
+// src/main/java/org/example/matcheat/config/SecurityConfig.java.
+// Do not merge security configuration from this legacy module.

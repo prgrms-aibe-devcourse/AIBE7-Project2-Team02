@@ -57,10 +57,16 @@ function renderOrder(order) {
         'orderContent'
     ).hidden = false;
 
-    document.getElementById(
-        'orderStatus'
-    ).textContent =
+    const status =
+        document.getElementById(
+            'orderStatus'
+        );
+
+    status.textContent =
         statusLabel(order.status);
+
+    status.dataset.status =
+        order.status || '';
 
     setField(
         'title',
@@ -82,12 +88,7 @@ function renderOrder(order) {
 
     setField(
         'budget',
-        `${
-            order.budgetType
-            === 'PER_PERSON'
-                ? '1인당'
-                : '총'
-        } ${formatNumber(order.budget)}원`
+        formatBudget(order)
     );
 
     setField(
@@ -98,6 +99,11 @@ function renderOrder(order) {
     setField(
         'deliveryAddress',
         order.deliveryAddress || '-'
+    );
+
+    setField(
+        'deliveryAddressDetail',
+        order.deliveryAddressDetail || '-'
     );
 
     setField(
@@ -196,6 +202,119 @@ async function configureActions(order) {
             'proposalLink'
         ).href =
             `/requests/${requestId}/proposals/new`;
+
+        const sellerChatButton =
+            document.getElementById(
+                'sellerChatButton'
+            );
+
+        const hasChat =
+            await hasActiveOrderChat(
+                requestId
+            );
+
+        sellerChatButton.textContent =
+            hasChat
+                ? '💬 채팅 이어가기'
+                : '💬 바로 채팅하기';
+
+        sellerChatButton.addEventListener(
+            'click',
+            startChatForOrder
+        );
+    }
+}
+
+/**
+ * 현재 주문을 기준으로 진행 중인 채팅방이 이미 있는지 확인한다.
+ */
+async function hasActiveOrderChat(orderRequestId) {
+    if (readCurrentUserId() === null) {
+        return false;
+    }
+
+    try {
+        const response =
+            await authFetch(
+                '/api/v1/chat-rooms'
+            );
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const rooms =
+            await readApiBody(response);
+
+        return Array.isArray(rooms)
+            && rooms.some(room =>
+                Number(room.orderRequestId)
+                === Number(orderRequestId)
+                && room.originType === 'PROPOSAL'
+                && room.status === 'ACTIVE'
+            );
+
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * 판매자가 현재 주문의 구매자와 채팅방을 열고 해당 대화로 이동한다.
+ */
+async function startChatForOrder() {
+    const chatButton =
+        document.getElementById(
+            'sellerChatButton'
+        );
+
+    chatButton.disabled = true;
+    chatButton.textContent =
+        '채팅방 여는 중...';
+
+    try {
+        const response =
+            await authFetch(
+                '/api/v1/chat-rooms',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderRequestId:
+                            Number(requestId),
+                        originType:
+                            'PROPOSAL'
+                    })
+                }
+            );
+
+        const room =
+            await readApiBody(
+                response
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                room?.message
+                ?? '채팅방을 열지 못했습니다.'
+            );
+        }
+
+        window.location.href =
+            `/chat?roomId=${room.chatRoomId}`;
+
+    } catch (error) {
+        alert(
+            error.message
+            ?? '채팅방을 열지 못했습니다.'
+        );
+
+        chatButton.disabled = false;
+        chatButton.textContent =
+            '💬 바로 채팅하기';
     }
 }
 
@@ -288,6 +407,26 @@ function redirectToLogin() {
     throw new Error(
         'Redirecting to login'
     );
+}
+
+/**
+ * 주문 예산 유형에 맞는 상세 표시 문구를 만든다.
+ */
+function formatBudget(order) {
+    if (
+        order.budgetType
+        === 'PER_PERSON'
+    ) {
+        const totalBudget =
+            order.totalBudget
+            ?? Number(order.budget || 0)
+            * Number(order.quantity || 0);
+
+        return `1인당 ${formatNumber(order.budget)}원\n`
+            + `총 ${formatNumber(totalBudget)}원`;
+    }
+
+    return `총 ${formatNumber(order.budget)}원`;
 }
 
 /**

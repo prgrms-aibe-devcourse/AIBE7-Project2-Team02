@@ -12,18 +12,26 @@
 <header th:replace="~{fragments/header :: header}"></header>
 
 <main id="orderDetailPage"
+      class="order-detail-page"
       th:attr="data-request-id=${requestId}">
 
     <section class="order-detail-header">
-        <div>
-            <h1>주문 상세</h1>
-            <p>등록된 주문의 상세 조건과 진행 상태를 확인할 수 있습니다.</p>
+        <div class="order-detail-heading">
+            <p class="order-page-kicker">주문 상세</p>
+
+            <h1 data-order-field="title">
+                주문 정보를 불러오는 중입니다.
+            </h1>
+
+            <p>
+                등록된 주문의 상세 조건과 진행 상태를 확인할 수 있습니다.
+            </p>
         </div>
 
         <span id="orderStatus"
               class="order-status">
-            조회 중
-        </span>
+        조회 중
+    </span>
     </section>
 
     <section id="orderLoading"
@@ -41,65 +49,75 @@
          hidden>
 
         <section class="order-detail-card">
-            <h2>주문 기본 정보</h2>
+            <div class="order-detail-card-header">
+                <h2>주요 주문 조건</h2>
+                <p>매칭에 사용되는 주요 주문 조건입니다.</p>
+            </div>
 
-            <div class="order-detail-info">
+            <div class="order-detail-summary">
 
-                <div class="order-detail-row">
-                    <span class="order-detail-label">
-                        주문 제목
-                    </span>
+                <div class="order-detail-summary-item">
+            <span class="order-detail-label">
+                행사·배송 일시
+            </span>
 
-                    <span data-order-field="title"></span>
+                    <strong data-order-field="eventDateTime"></strong>
                 </div>
 
-                <div class="order-detail-row">
-                    <span class="order-detail-label">
-                        행사/배송 일시
-                    </span>
-
-                    <span data-order-field="eventDateTime"></span>
-                </div>
-
-                <div class="order-detail-row">
-                    <span class="order-detail-label">
-                        수량
-                    </span>
+                <div class="order-detail-summary-item">
+            <span class="order-detail-label">
+                수량
+            </span>
 
                     <span>
-                        <strong data-order-field="quantity"></strong>명
-                    </span>
+                <strong data-order-field="quantity"></strong>명
+            </span>
                 </div>
 
-                <div class="order-detail-row">
-                    <span class="order-detail-label">
-                        예산
-                    </span>
+                <div class="order-detail-summary-item">
+            <span class="order-detail-label">
+                예산
+            </span>
 
-                    <span data-order-field="budget"></span>
+                    <strong class="order-detail-budget"
+                            data-order-field="budget"></strong>
                 </div>
 
-                <div class="order-detail-row">
-                    <span class="order-detail-label">
-                        음식 카테고리
-                    </span>
+                <div class="order-detail-summary-item">
+            <span class="order-detail-label">
+                음식 카테고리
+            </span>
 
-                    <span data-order-field="category"></span>
+                    <strong data-order-field="category"></strong>
                 </div>
 
-                <div class="order-detail-row">
-                    <span class="order-detail-label">
-                        배송지
-                    </span>
+            </div>
+
+            <div class="order-detail-address">
+
+                <div>
+        <span class="order-detail-label">
+            배송지
+        </span>
 
                     <span data-order-field="deliveryAddress"></span>
+                </div>
+
+                <div>
+        <span class="order-detail-label">
+            상세 주소
+        </span>
+
+                    <span data-order-field="deliveryAddressDetail"></span>
                 </div>
 
             </div>
         </section>
 
         <section class="order-detail-card">
-            <h2>상세 요청사항</h2>
+            <div class="order-detail-card-header">
+                <h2>상세 요청사항</h2>
+            </div>
 
             <p class="order-detail-description"
                data-order-field="description">
@@ -111,7 +129,10 @@
                  class="order-detail-card"
                  hidden>
 
-            <h2>참고 이미지</h2>
+            <div class="order-detail-card-header">
+                <h2>참고 이미지</h2>
+                <p>원하는 메뉴나 구성에 참고할 이미지입니다.</p>
+            </div>
 
             <img id="referenceImage"
                  class="order-detail-reference-image"
@@ -155,6 +176,12 @@
                    class="order-detail-button order-detail-proposal">
                     제안하기
                 </a>
+
+                <button type="button"
+                        id="sellerChatButton"
+                        class="order-detail-button order-detail-proposal">
+                    💬 바로 채팅하기
+                </button>
 
             </div>
 

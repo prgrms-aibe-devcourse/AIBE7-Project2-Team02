@@ -39,6 +39,7 @@ public class EstimateService {
             LocalDateTime eventDateTime,
             String estimateImage,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude
     ) {
@@ -54,6 +55,7 @@ public class EstimateService {
                 eventDateTime,
                 estimateImage,
                 deliveryAddress,
+                deliveryAddressDetail,
                 latitude,
                 longitude
         );

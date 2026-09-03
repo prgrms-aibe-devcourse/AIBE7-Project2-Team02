@@ -10,88 +10,126 @@
 
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main>
+<main class="product-detail-page">
     <section class="product-detail-header">
         <div>
-            <h1>판매 조건 상세</h1>
-            <p>선택한 판매 조건의 상세 정보를 확인합니다.</p>
+            <p class="product-detail-kicker">상품 정보</p>
+            <h1>상품 상세</h1>
+            <p>
+                상품 설명과 주문 가능 조건, 배송 및 판매 일정을 확인할 수 있습니다.
+            </p>
         </div>
+
+        <a th:href="@{/product}" class="product-detail-back">
+            상품 목록
+        </a>
     </section>
 
-    <div class="product-toolbar">
-        <a th:href="@{/product}">📋 목록으로</a>
-        <a th:href="@{/product/new}">➕ 새 등록</a>
+    <div id="statusBox" class="product-detail-status">
+        상세 정보를 불러오는 중입니다...
     </div>
 
-    <div id="statusBox" class="product-detail-status">상세 정보를 불러오는 중입니다...</div>
+    <section
+            id="detailContent"
+            class="product-detail-layout"
+            style="display:none;"
+    >
+        <div class="product-detail-main">
+            <div class="product-detail-image-card">
+                <div id="imageHolder"></div>
+            </div>
 
-    <section id="detailContent" class="product-detail-layout" style="display:none;">
-        <div class="product-detail-image-card">
-            <div id="imageHolder"></div>
+            <section class="product-detail-description-card">
+                <h2>상품 상세 설명</h2>
+
+                <p
+                        id="description"
+                        class="product-detail-description"
+                ></p>
+
+                <div class="product-detail-extra">
+                    <div>
+                        <span>가게 주소</span>
+                        <strong id="storeAddress"></strong>
+                    </div>
+
+                    <div>
+                        <span>상세 주소</span>
+                        <strong id="storeAddressDetail"></strong>
+                    </div>
+                </div>
+
+                <div class="product-detail-extra">
+                    <div>
+                        <span>최종 수정일</span>
+                        <strong id="updatedAt"></strong>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="product-detail-card">
-            <div class="product-detail-info">
-                <div class="product-detail-row">
-                    <span class="product-detail-label">판매 조건 ID</span>
-                    <span class="product-detail-value" id="productId"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">상품/메뉴명</span>
-                    <span class="product-detail-value" id="productName"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">최소 수주 수량</span>
-                    <span class="product-detail-value" id="minHeadcount"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">최대 수주 수량</span>
-                    <span class="product-detail-value" id="maxHeadcount"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">1인분 가격</span>
-                    <span class="product-detail-value" id="servingPrice"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">배송 반경</span>
-                    <span class="product-detail-value" id="deliveryRadiusKm"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">음식 카테고리</span>
-                    <span class="product-detail-value" id="category"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">정기 휴무 요일</span>
-                    <span class="product-detail-value" id="dayOfWeek"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">평점</span>
-                    <span class="product-detail-value" id="ratingAvg"></span>
-                </div>
-                <div class="product-detail-row">
-                    <span class="product-detail-label">최종 수정일</span>
-                    <span class="product-detail-value" id="updatedAt"></span>
-                </div>
-                <div class="product-detail-row wide">
-                    <span class="product-detail-label">가게 주소</span>
-                    <span class="product-detail-value" id="storeAddress"></span>
-                </div>
-                <div class="product-detail-row wide">
-                    <span class="product-detail-label">설명</span>
-                    <p class="product-detail-description" id="description"></p>
-                </div>
-                <div class="product-detail-row wide">
-                    <span class="product-detail-label">특정 불가 날짜</span>
-                    <span class="product-detail-value" id="unavailableDates"></span>
-                </div>
+        <aside class="product-detail-card">
+            <div
+                    id="category"
+                    class="product-detail-category"
+            ></div>
+
+            <h2
+                    id="productName"
+                    class="product-detail-name"
+            ></h2>
+
+            <div class="product-detail-price">
+                <strong id="servingPrice"></strong>
+                <span>/ 인분</span>
             </div>
+
+            <div class="product-detail-divider"></div>
+
+            <dl class="product-detail-summary">
+                <div>
+                    <dt>최소 주문수량</dt>
+                    <dd id="minHeadcount"></dd>
+                </div>
+
+                <div>
+                    <dt>최대 주문수량</dt>
+                    <dd id="maxHeadcount"></dd>
+                </div>
+
+                <div>
+                    <dt>배송 가능 거리</dt>
+                    <dd id="deliveryRadiusKm"></dd>
+                </div>
+                <div>
+                    <dt>평점</dt>
+                    <dd id="ratingAvg"></dd>
+                </div>
+            </dl>
+
+            <section class="product-detail-schedule">
+                <h3>판매 일정 안내</h3>
+
+                <div class="product-detail-schedule-row">
+                    <span>정기 휴무</span>
+                    <strong id="dayOfWeek"></strong>
+                </div>
+
+                <div class="product-detail-schedule-row">
+                    <span>특정 불가 날짜</span>
+                    <strong id="unavailableDates"></strong>
+                </div>
+            </section>
 
             <div class="product-detail-actions">
                 <a id="estimateButton" class="product-detail-button" href="#">견적 요청하기</a>
+                <button id="chatButton" type="button" class="product-detail-button product-detail-primary">💬 바로 채팅하기</button>
+                <a id="reportButton" class="product-detail-button product-detail-report" href="#">상품 신고</a>
                 <a id="editButton" class="product-detail-button product-detail-primary" href="#" style="display:none;">수정하기</a>
+                <a id="reviewsButton" class="product-detail-button" href="#">후기 전체보기</a>
                 <a class="product-detail-button" th:href="@{/product}">목록으로 돌아가기</a>
             </div>
-        </div>
+        </aside>
     </section>
 </main>
 

@@ -1,5 +1,6 @@
 package org.example.matcheat.domain.chat.interceptor;
 
+import org.example.matcheat.domain.account.service.TradeAccountValidationService;
 import org.example.matcheat.domain.chat.entity.ChatRoom;
 import org.example.matcheat.domain.chat.service.ChatService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 class ChatSubscriptionInterceptorTest {
     private ChatService chatService;
+    private TradeAccountValidationService accounts;
     private JwtDecoder jwtDecoder;
     private Converter<Jwt, AbstractAuthenticationToken> converter;
     private ChatSubscriptionInterceptor interceptor;
@@ -35,9 +37,10 @@ class ChatSubscriptionInterceptorTest {
     @SuppressWarnings("unchecked")
     void setUp() {
         chatService = mock(ChatService.class);
+        accounts = mock(TradeAccountValidationService.class);
         jwtDecoder = mock(JwtDecoder.class);
         converter = mock(Converter.class);
-        interceptor = new ChatSubscriptionInterceptor(chatService, jwtDecoder, converter);
+        interceptor = new ChatSubscriptionInterceptor(chatService, accounts, jwtDecoder, converter);
     }
 
     @Test
@@ -67,11 +70,12 @@ class ChatSubscriptionInterceptorTest {
     void validatesSubscriberUsingAuthenticatedPrincipal() {
         ChatRoom room = mock(ChatRoom.class);
         when(chatService.getChatRoomEntity(7L)).thenReturn(room);
+        when(accounts.sellerIdForUserOrNull(42L)).thenReturn(420L);
         Message<?> message = subscribedMessage("/sub/chat/room/7", "42");
 
         interceptor.preSend(message, mock(MessageChannel.class));
 
-        verify(room).validateParticipant(42L);
+        verify(room).validateParticipant(42L, 420L);
     }
 
     private static Message<?> message(StompCommand command, String destination, String authorization) {

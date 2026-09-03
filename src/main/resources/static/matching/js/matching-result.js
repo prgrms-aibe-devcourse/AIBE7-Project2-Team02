@@ -11,6 +11,14 @@ const errorArea =
 
 const resultsArea =
     document.getElementById('matchingResults');
+const summaryArea =
+    document.getElementById('matchingSummary');
+
+const resultMeta =
+    document.getElementById('matchingResultMeta');
+
+const resultCount =
+    document.getElementById('matchingResultCount');
 
 const requestId =
     page?.dataset.requestId;
@@ -34,6 +42,79 @@ function createTag(text) {
     tag.textContent = text;
 
     return tag;
+}
+
+/**
+ * 주문 예산을 현재 예산 유형에 맞게 표시한다.
+ */
+function formatBudget(order) {
+    if (
+        order.budgetType
+        === 'PER_PERSON'
+    ) {
+        const totalBudget =
+            order.totalBudget
+            ?? Number(order.budget || 0)
+            * Number(order.quantity || 0);
+
+        return `1인당 ${formatMoney(order.budget)}원 · `
+            + `총 ${formatMoney(totalBudget)}원`;
+    }
+
+    return `총 ${formatMoney(order.budget)}원`;
+}
+
+/**
+ * 행사·배송 일시를 화면용 형식으로 변환한다.
+ */
+function formatDateTime(value) {
+    if (!value) {
+        return '-';
+    }
+
+    return new Intl.DateTimeFormat(
+        'ko-KR',
+        {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        }
+    ).format(
+        new Date(value)
+    );
+}
+
+/**
+ * 현재 매칭의 기준이 된 주문 조건을 표시한다.
+ */
+function renderOrderSummary(order) {
+    document.getElementById(
+        'summaryCategory'
+    ).textContent =
+        order.category || '-';
+
+    document.getElementById(
+        'summaryQuantity'
+    ).textContent =
+        `${order.quantity ?? '-'}명`;
+
+    document.getElementById(
+        'summaryBudget'
+    ).textContent =
+        formatBudget(order);
+
+    document.getElementById(
+        'summaryEventDateTime'
+    ).textContent =
+        formatDateTime(
+            order.eventDateTime
+        );
+
+    document.getElementById(
+        'summaryDeliveryAddress'
+    ).textContent =
+        order.deliveryAddress || '-';
+
+    summaryArea.hidden = false;
 }
 
 /**
@@ -142,7 +223,6 @@ function createMatchCard(match, index) {
 
     meta.className =
         'matching-product-meta';
-
     const price =
         document.createElement('strong');
 
@@ -150,6 +230,22 @@ function createMatchCard(match, index) {
         `1인분 ${formatMoney(
             product.servingPrice
         )}원`;
+
+    const productInfo =
+        document.createElement('span');
+
+    productInfo.className =
+        'matching-product-info';
+
+    const minHeadcount =
+        product.minHeadcount ?? '-';
+
+    const maxHeadcount =
+        product.maxHeadcount ?? '-';
+
+    productInfo.textContent =
+        `${product.category || '카테고리 없음'} · `
+        + `${minHeadcount}~${maxHeadcount}명`;
 
     const route =
         document.createElement('span');
@@ -163,6 +259,7 @@ function createMatchCard(match, index) {
 
     meta.append(
         price,
+        productInfo,
         route
     );
 
@@ -210,13 +307,34 @@ function createMatchCard(match, index) {
                 createTag(tag)
             )
         );
+    const footer =
+        document.createElement('div');
 
+    footer.className =
+        'matching-card-footer';
+
+    const detailLink =
+        document.createElement('a');
+
+    detailLink.className =
+        'matching-product-link';
+
+    detailLink.href =
+        `/product/detail?id=${product.id}`;
+
+    detailLink.textContent =
+        '상품 상세 보기';
+
+    footer.appendChild(
+        detailLink
+    );
     content.append(
         heading,
         meta,
         scoreBar,
         scoreDetail,
-        tags
+        tags,
+        footer
     );
 
     card.append(
@@ -232,6 +350,16 @@ function createMatchCard(match, index) {
  */
 function renderMatches(matches) {
     resultsArea.replaceChildren();
+
+    const matchCount =
+        Array.isArray(matches)
+            ? matches.length
+            : 0;
+
+    resultCount.textContent =
+        `총 ${matchCount}개의 상품`;
+
+    resultMeta.hidden = false;
 
     if (!Array.isArray(matches)
         || matches.length === 0) {
@@ -306,6 +434,76 @@ async function loadMatches() {
 
             return;
         }
+
+        const orderResponse =
+            await authFetch(
+                `/api/v1/requests/${requestId}`
+            );
+
+        if (orderResponse.status === 401) {
+            const redirect =
+                encodeURIComponent(
+                    window.location.pathname
+                );
+
+            window.location.href =
+                `/login?redirect=${redirect}`;
+
+            return;
+            const price =
+                document.createElement('strong');
+
+            price.textContent =
+                `1인분 ${formatMoney(
+                    product.servingPrice
+                )}원`;
+
+            const productInfo =
+                document.createElement('span');
+
+            productInfo.className =
+                'matching-product-info';
+
+            const minHeadcount =
+                product.minHeadcount ?? '-';
+
+            const maxHeadcount =
+                product.maxHeadcount ?? '-';
+
+            productInfo.textContent =
+                `${product.category || '카테고리 없음'} · `
+                + `${minHeadcount}~${maxHeadcount}명`;
+
+            const route =
+                document.createElement('span');
+
+            route.textContent =
+                `도로 이동거리 ${Number(
+                    match.routeDistanceKm
+                ).toFixed(1)}km · 약 ${
+                    match.routeDurationMinutes
+                }분`;
+
+            meta.append(
+                price,
+                productInfo,
+                route
+            );
+        }
+
+        const order =
+            await readApiBody(
+                orderResponse
+            );
+
+        if (!orderResponse.ok) {
+            throw new Error(
+                order?.message
+                ?? '매칭 기준 주문을 불러오지 못했습니다.'
+            );
+        }
+
+        renderOrderSummary(order);
 
         const body =
             await readApiBody(response);

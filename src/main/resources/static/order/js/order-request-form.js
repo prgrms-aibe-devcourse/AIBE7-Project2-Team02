@@ -16,6 +16,21 @@ if (form) {
     const requestId =
         form.dataset.requestId;
 
+    const addressInput =
+        document.getElementById(
+            'deliveryAddress'
+        );
+
+    const addressDetailInput =
+        document.getElementById(
+            'deliveryAddressDetail'
+        );
+
+    const addressSearchButton =
+        document.getElementById(
+            'addressSearchButton'
+        );
+
     const imageFileInput =
         document.getElementById('imageFile');
 
@@ -161,6 +176,11 @@ if (form) {
         }
     );
 
+    addressSearchButton.addEventListener(
+        'click',
+        openAddressSearch
+    );
+
     imageFileInput.addEventListener(
         'change',
         () => {
@@ -238,6 +258,14 @@ if (form) {
                     form.elements
                         .namedItem(
                             'deliveryAddress'
+                        )
+                        .value
+                        .trim(),
+
+                deliveryAddressDetail:
+                    form.elements
+                        .namedItem(
+                            'deliveryAddressDetail'
                         )
                         .value
                         .trim()
@@ -340,6 +368,39 @@ if (form) {
     );
 
     /**
+     * Kakao 우편번호 검색창을 열고 선택한 주소를 배송지에 입력한다.
+     */
+    function openAddressSearch() {
+        if (
+            typeof kakao === 'undefined'
+            || !kakao.Postcode
+        ) {
+            alert(
+                '주소 검색 서비스를 불러오지 못했습니다.'
+            );
+
+            return;
+        }
+
+        new kakao.Postcode({
+            oncomplete(data) {
+                const selectedAddress =
+                    data.roadAddress
+                    || data.jibunAddress
+                    || data.address;
+
+                addressInput.value =
+                    selectedAddress;
+
+// 새 배송지를 선택하면 이전 상세 주소가
+// 다른 장소의 정보로 남지 않도록 초기화한다.
+                addressDetailInput.value = '';
+                addressDetailInput.focus();
+            }
+        }).open();
+    }
+
+    /**
      * 기존 주문 정보를 수정 폼에 표시한다.
      */
     function populateEditForm(order) {
@@ -388,6 +449,14 @@ if (form) {
             )
             .value =
             order.deliveryAddress
+            || '';
+
+        form.elements
+            .namedItem(
+                'deliveryAddressDetail'
+            )
+            .value =
+            order.deliveryAddressDetail
             || '';
 
         form.elements

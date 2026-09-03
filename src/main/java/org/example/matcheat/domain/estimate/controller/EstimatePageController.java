@@ -11,14 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class EstimatePageController {
 
     /**
-     * 내가 보낸/받은 견적 목록 페이지로 이동한다.
-     */
-    @GetMapping("/estimates")
-    public String listPage() {
-        return "estimate/list";
-    }
-
-    /**
      * 견적 작성 페이지로 이동한다.
      */
     @GetMapping("/estimates/new")

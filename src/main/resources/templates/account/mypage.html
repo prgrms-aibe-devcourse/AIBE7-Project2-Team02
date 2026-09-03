@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>마이페이지 | MatchEAT</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/proposal.css}">
     <link rel="stylesheet" th:href="@{/account/css/mypage.css}">
 </head>
 <body>
@@ -18,11 +19,31 @@
 
         <nav class="mypage-navigation">
             <a th:href="@{/mypage}" data-view="profile">계정 개요</a>
-            <a th:href="@{/mypage/requests}" data-view="requests">내 구매 요청</a>
-            <a th:href="@{/mypage/purchases}" data-view="purchases">구매 내역</a>
-            <a th:href="@{/mypage/sales}" data-view="sales" data-seller-navigation hidden>판매 내역</a>
-            <a th:href="@{/mypage/offers}" data-view="offers">오퍼</a>
+            <a th:href="@{/mypage/requests}"
+               data-view="requests"
+               data-view-group="registration">
+                등록 관리
+            </a>
+            <a th:href="@{/mypage/buying-estimates}"
+               data-view="buying-estimates"
+               data-view-group="buying-negotiation">
+                구매 협의
+            </a>
+
+            <a th:href="@{/mypage/selling-estimates}"
+               data-view="selling-estimates"
+               data-view-group="selling-negotiation"
+               data-seller-navigation
+               hidden>
+                판매 협의
+            </a>
+            <a th:href="@{/mypage/purchases}"
+               data-view="purchases"
+               data-view-group="trade">
+                거래 내역
+            </a>
             <a th:href="@{/chat}">채팅</a>
+            <a th:href="@{/mypage/reports}" data-view="reports">신고 및 문의</a>
         </nav>
     </aside>
 
@@ -33,6 +54,16 @@
                 <h1 data-view-title>계정 개요</h1>
             </div>
             <span class="status-chip" data-account-status>확인 중</span>
+        </div>
+        <nav class="mypage-view-tabs"
+             data-view-tabs
+             aria-label="마이페이지 하위 메뉴"
+             hidden>
+        </nav>
+        <div class="mypage-proposal-panel"
+             data-proposal-panel
+             hidden>
+            <section th:replace="~{proposal/list :: proposal-list-content}"></section>
         </div>
 
         <div class="profile-grid" data-profile-panel hidden>
@@ -62,7 +93,7 @@
                 <div>
                     <p class="action-index">02 / SELLER</p>
                     <h2 id="seller-action-title">판매자 등록 신청</h2>
-                    <p>관리자 승인 후 판매 기능을 사용할 수 있습니다.</p>
+                    <p>사업자 정보를 입력해 판매자 등록 심사를 신청할 수 있습니다.</p>
                 </div>
                 <div class="seller-state" data-seller-state hidden>
                     <strong data-seller-state-title></strong>
@@ -71,32 +102,47 @@
                 </div>
                 <form data-seller-form novalidate>
                     <label for="business-name">사업자명</label>
-                    <input id="business-name" name="businessName" maxlength="100" required>
-                    <small data-field-error="businessName" aria-live="polite"></small>
+                    <input id="business-name"
+                           name="businessName"
+                           maxlength="100"
+                           placeholder="사업자명을 입력해 주세요."
+                           required>
+                    <small data-field-error="businessName"
+                           aria-live="polite"></small>
 
                     <label for="business-number">사업자번호</label>
-                    <input id="business-number" name="businessNumber" inputmode="numeric" maxlength="20"
-                           placeholder="123-45-67890" required>
-                    <small data-field-error="businessNumber" aria-live="polite"></small>
+                    <input id="business-number"
+                           name="businessNumber"
+                           inputmode="numeric"
+                           maxlength="20"
+                           placeholder="123-45-67890"
+                           required>
+                    <small data-field-error="businessNumber"
+                           aria-live="polite"></small>
 
-                    <div class="coordinate-grid">
-                        <div>
-                            <label for="latitude">위도</label>
-                            <input id="latitude" name="latitude" type="number" min="-90" max="90" step="0.0000001">
-                            <small data-field-error="latitude" aria-live="polite"></small>
-                        </div>
-                        <div>
-                            <label for="longitude">경도</label>
-                            <input id="longitude" name="longitude" type="number" min="-180" max="180" step="0.0000001">
-                            <small data-field-error="longitude" aria-live="polite"></small>
-                        </div>
-                    </div>
+                    <p class="action-message"
+                       data-form-message
+                       role="status"></p>
 
-                    <label for="delivery-radius">배송 반경(km)</label>
-                    <input id="delivery-radius" name="deliveryRadiusKm" type="number" min="0" step="0.01">
-                    <small data-field-error="deliveryRadiusKm" aria-live="polite"></small>
-                    <p class="action-message" data-form-message role="status"></p>
                     <button type="submit">심사 신청</button>
+                </form>
+            </section>
+
+            <section class="account-action-card" aria-labelledby="password-action-title">
+                <div><p class="action-index">03 / SECURITY</p><h2 id="password-action-title">비밀번호 변경</h2>
+                    <p>변경 후 현재 로그인 토큰은 즉시 만료됩니다.</p></div>
+                <form data-password-form novalidate>
+                    <label for="password-current">현재 비밀번호</label>
+                    <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required>
+                    <small data-field-error="currentPassword" aria-live="polite"></small>
+                    <label for="password-new">새 비밀번호</label>
+                    <input id="password-new" name="newPassword" type="password" autocomplete="new-password" required>
+                    <small data-field-error="newPassword" aria-live="polite"></small>
+                    <label for="password-confirm">새 비밀번호 확인</label>
+                    <input id="password-confirm" name="newPasswordConfirm" type="password" autocomplete="new-password" required>
+                    <small data-field-error="newPasswordConfirm" aria-live="polite"></small>
+                    <p class="action-message" data-form-message role="status"></p>
+                    <button type="submit">비밀번호 변경</button>
                 </form>
             </section>
 
@@ -119,6 +165,42 @@
                     <p class="action-message" data-form-message role="status"></p>
                     <button type="submit">회원 탈퇴</button>
                 </form>
+            </section>
+        </div>
+
+        <div class="report-workspace" data-report-panel hidden>
+            <section class="report-compose" aria-labelledby="report-compose-title">
+                <div>
+                    <p class="action-index">DIRECT TO ADMIN</p>
+                    <h2 id="report-compose-title">관리자에게 알리기</h2>
+                    <p>서비스 이용 중 확인이 필요한 내용을 작성하면 관리자 신고함으로 전달됩니다.</p>
+                </div>
+                <form data-report-form novalidate>
+                    <p class="report-context" data-report-context hidden></p>
+                    <label for="report-title">제목</label>
+                    <input id="report-title" name="title" maxlength="100" required>
+                    <small data-field-error="title" aria-live="polite"></small>
+                    <label for="report-message">내용</label>
+                    <textarea id="report-message" name="message" maxlength="2000" required></textarea>
+                    <small data-field-error="message" aria-live="polite"></small>
+                    <label for="report-evidence">증거 이미지 (선택, 최대 3개)</label>
+                    <input id="report-evidence" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+                    <p class="action-message" data-form-message role="status"></p>
+                    <button type="submit">관리자에게 보내기</button>
+                </form>
+            </section>
+            <section class="report-history" aria-labelledby="report-history-title" hidden>
+                <div class="report-section-heading">
+                    <div><p class="action-index">HISTORY</p><h2 id="report-history-title">내 신고 내역</h2></div>
+                    <button type="button" data-report-refresh>새로고침</button>
+                </div>
+                <div class="report-list" data-report-list></div>
+                <p class="report-empty" data-report-empty hidden>아직 작성한 신고가 없습니다.</p>
+                <div class="report-load-error" data-report-load-error hidden role="alert">
+                    <p>신고 내역을 불러오지 못했습니다.</p>
+                    <button type="button" data-report-retry>다시 시도</button>
+                </div>
+                <div class="pagination" data-report-pagination></div>
             </section>
         </div>
 
@@ -167,5 +249,6 @@
 </main>
 
 <script type="module" th:src="@{/account/js/mypage.js}"></script>
+<script type="module" th:src="@{/proposal/js/proposal-list.js}"></script>
 </body>
 </html>

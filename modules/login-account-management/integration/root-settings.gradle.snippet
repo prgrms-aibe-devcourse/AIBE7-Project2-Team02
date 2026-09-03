@@ -1,3 +1,3 @@
-// Apply only after coordinating with the team.
-include 'login-account-management'
-project(':login-account-management').projectDir = file('modules/login-account-management')
+// DISABLED: historical integration snippet.
+// The production account implementation lives under the root src tree.
+throw new GradleException('Do not include the legacy login-account-management build in MatchEAT')

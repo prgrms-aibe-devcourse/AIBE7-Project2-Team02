@@ -39,14 +39,36 @@ test('모바일 화면에서 사이드바와 거래 카드를 단일 열로 배�
   assert.match(html, /data-record-display="grid"/);
 });
 
+test('구매 내역 화면에서 거래 상태를 단순 상태로 표시한다', {skip: !browserPath}, async () => {
+  const html = await renderInBrowser('purchases');
+  const recordList = renderedRecordList(html);
+
+  assert.match(html, /data-browser-test="ready"/);
+  assert.match(html, /전체 3건/);
+  assert.match(recordList, /제안/);
+  assert.match(recordList, /진행 중/);
+  assert.match(recordList, /완료/);
+});
+
+test('채팅 목록에서 최근 메시지와 채팅방 이동 링크를 표시한다', {skip: !browserPath}, async () => {
+  const html = await renderInBrowser('chats');
+  const recordList = renderedRecordList(html);
+
+  assert.match(html, /data-browser-test="ready"/);
+  assert.match(recordList, /배송 시간을 확인해 주세요/);
+  assert.match(recordList, /href="\/chat\?roomId=17"/);
+  assert.match(recordList, /is-clickable/);
+});
+
 async function renderInBrowser(scenario) {
   const server = http.createServer((request, response) => serve(request, response, scenario));
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const {port} = server.address();
   const userDataDirectory = await mkdtemp(path.join(os.tmpdir(), 'matcheat-edge-'));
   try {
+    const view = ['purchases', 'chats'].includes(scenario) ? scenario : 'offers';
     return await runBrowser(
-      `http://127.0.0.1:${port}/mypage/offers?scenario=${scenario}`,
+      `http://127.0.0.1:${port}/mypage/${view}?scenario=${scenario}`,
       userDataDirectory,
       scenario,
     );
@@ -66,7 +88,7 @@ function renderedRecordList(html) {
 
 async function serve(request, response, scenario) {
   const pathname = new URL(request.url, 'http://localhost').pathname;
-  if (pathname === '/mypage/offers') {
+  if (['/mypage/offers', '/mypage/purchases', '/mypage/chats'].includes(pathname)) {
     const template = await readFile(templatePath, 'utf8');
     const html = prepareTemplate(template, scenario);
     send(response, 200, 'text/html; charset=utf-8', html);
@@ -102,6 +124,14 @@ function prepareTemplate(template, scenario) {
       '/api/v1/proposals/sent': [{id: 2, requestId: 12, itemName: '행사 제안', status: 'ACCEPTED', createdAt: '2026-09-01T10:00:00'}],
       '/api/v1/estimates/received': [{id: 3, itemName: '케이터링 견적', status: 'REQUESTED', createdAt: '2026-09-01T11:00:00'}],
       '/api/v1/estimates/sent': [{id: 4, itemName: '도시락 견적', status: 'REQUESTED', createdAt: '2026-09-01T12:00:00'}],
+      '/api/v1/orders/purchases': [
+        {activityId: 'PROPOSAL:5', sourceType: 'PROPOSAL', sourceId: 5, direction: 'RECEIVED', sourceStatus: 'SENT', itemName: '제안 거래'},
+        {activityId: 'QUOTE:6', sourceType: 'QUOTE', sourceId: 6, direction: 'SENT', sourceStatus: 'ACCEPTED', itemName: '진행 거래'},
+        {activityId: 'QUOTE:7', sourceType: 'QUOTE', sourceId: 7, direction: 'RECEIVED', sourceStatus: 'ACCEPTED', paymentStatus: 'COMPLETED', itemName: '완료 거래'},
+      ],
+      '/api/v1/chat-rooms': [
+        {chatRoomId: 17, originType: 'PROPOSAL', status: 'ACTIVE', lastMessage: '배송 시간을 확인해 주세요.', lastMessageAt: '2026-09-02T12:30:00'},
+      ],
     };
     window.fetch = async (input) => {
       const pathname = new URL(String(input), location.origin).pathname;

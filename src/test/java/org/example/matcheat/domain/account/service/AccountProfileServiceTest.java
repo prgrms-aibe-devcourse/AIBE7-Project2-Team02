@@ -108,6 +108,33 @@ class AccountProfileServiceTest {
     }
 
     @Test
+    void changesPasswordAndInvalidatesExistingTokens() {
+        UserAccount account = activeAccount("user");
+        when(users.findById(7L)).thenReturn(Optional.of(account));
+        when(passwordHasher.matches("password1234", account.passwordHash())).thenReturn(true);
+        when(passwordHasher.matches("newPassword5678", account.passwordHash())).thenReturn(false);
+        when(passwordHasher.hash("newPassword5678")).thenReturn("{bcrypt}new-hash");
+        when(users.updatePassword(7L, "{bcrypt}new-hash")).thenReturn(Optional.of(account));
+
+        service.changePassword(7L, "password1234", "newPassword5678", "newPassword5678");
+
+        verify(users).updatePassword(7L, "{bcrypt}new-hash");
+    }
+
+    @Test
+    void rejectsPasswordChangeWithWrongCurrentPassword() {
+        UserAccount account = activeAccount("user");
+        when(users.findById(7L)).thenReturn(Optional.of(account));
+        when(passwordHasher.matches("wrongPassword1", account.passwordHash())).thenReturn(false);
+
+        assertThatThrownBy(() -> service.changePassword(
+                7L, "wrongPassword1", "newPassword5678", "newPassword5678"))
+                .isInstanceOf(AccountApplicationException.class)
+                .extracting(exception -> ((AccountApplicationException) exception).code())
+                .isEqualTo(AccountErrorCode.CURRENT_PASSWORD_MISMATCH);
+    }
+
+    @Test
     void rejectsWithdrawalWhenAccountHasActiveTrade() {
         UserAccount account = activeAccount("홍길동");
         when(users.findById(7L)).thenReturn(Optional.of(account));

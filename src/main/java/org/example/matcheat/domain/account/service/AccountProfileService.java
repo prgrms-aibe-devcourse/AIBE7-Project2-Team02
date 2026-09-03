@@ -48,6 +48,27 @@ public class AccountProfileService {
     }
 
     @Transactional
+    public void changePassword(long userId, String currentPassword, String newPassword, String confirmation) {
+        UserAccount account = requireActiveUser(userId);
+        if (currentPassword == null || account.passwordHash() == null
+                || !passwordHasher.matches(currentPassword, account.passwordHash())) {
+            throw new AccountApplicationException(
+                    AccountErrorCode.CURRENT_PASSWORD_MISMATCH, "Current password does not match.");
+        }
+        PasswordPolicy.validate(newPassword);
+        if (!newPassword.equals(confirmation)) {
+            throw new AccountApplicationException(
+                    AccountErrorCode.PASSWORD_CONFIRM_MISMATCH, "Password confirmation does not match.");
+        }
+        if (passwordHasher.matches(newPassword, account.passwordHash())) {
+            throw new AccountApplicationException(
+                    AccountErrorCode.VALIDATION_FAILED, "New password must differ from the current password.");
+        }
+        users.updatePassword(userId, passwordHasher.hash(newPassword))
+                .orElseThrow(AccountProfileService::userNotFound);
+    }
+
+    @Transactional
     public void withdraw(long userId, String currentPassword) {
         UserAccount account = requireActiveUser(userId);
         if (account.passwordHash() == null

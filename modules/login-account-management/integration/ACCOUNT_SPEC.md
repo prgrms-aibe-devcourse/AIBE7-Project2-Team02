@@ -1,10 +1,14 @@
 # MatchEAT 로그인·회원가입 모듈 작업 명세서
 
+> 보관 상태: 이 문서는 초기 독립 모듈 설계 기록이다. 현재 운영 구현의 단일 원본은
+> `src/main/java/org/example/matcheat/domain/account`이며, 아래의 모듈 통합 지침은 적용하지 않는다.
+> `modules/login-account-management`는 루트 Gradle 빌드에 포함하거나 의존성으로 연결하지 않는다.
+
 ## 1. 문서 목적
 
 이 문서는 다른 작업자 또는 에이전트가 MatchEAT의 로그인·회원가입 기능을 독립적으로 구현하고, 이후 메인 애플리케이션에 안전하게 통합할 수 있도록 작성한 실행 명세다.
 
-구현 코드는 `modules/login-account-management`를 단일 원본으로 관리한다. 같은 Java 코드를 메인 `src` 아래에 복제하지 않는다. 통합할 때는 Gradle project dependency로 연결한다.
+이 문서 작성 당시에는 `modules/login-account-management`를 단일 원본으로 계획했다. 현재는 루트 계정 도메인으로 통합이 완료됐으므로 이 원칙과 Gradle project dependency 지침은 폐기됐다.
 
 ## 2. 현재 프로젝트 기준
 
@@ -540,26 +544,13 @@ DB 설정 example은 `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`를 사용한다. JWT
 - `Optional<Object>` repository 반환
 - 실제 값이 든 `.env` 추적
 
-## 18. 통합 절차
+## 18. 현재 격리 절차
 
-격리 작업 단계:
-
-1. `modules/login-account-management` 안에서만 구현한다.
-2. 모듈 단위 테스트를 실행한다.
-3. 메인 루트 설정 파일은 수정하지 않는다.
-4. 필요한 루트 변경을 integration snippet에 기록한다.
-
-통합 단계:
-
-1. 다른 작업자의 최신 변경과 충돌 여부를 확인한다.
-2. `root-settings.gradle.snippet`으로 모듈을 Gradle project에 등록한다.
-3. `root-build.gradle.snippet`으로 `implementation project(...)`를 추가한다.
-4. application example을 기존 설정에 병합한다.
-5. 중앙 `SecurityFilterChain`에 resource server JWT 설정을 병합한다.
-6. 중앙 DB migration 정책에 auth schema를 편입한다.
-7. 전체 프로젝트 컴파일과 테스트를 실행한다.
-
-Java 소스를 메인 `src`에 복사하지 않는다. 최종 구조상 복사가 불가피하다고 팀이 결정하면 한 번만 이동하고 외부 원본을 제거하거나 보관 전용으로 명확히 표시한다.
+1. 운영 계정·로그인 변경은 루트 `domain/account`에서만 수행한다.
+2. 이 모듈은 과거 구현을 확인할 때만 `-p modules/login-account-management`로 독립 실행한다.
+3. 루트 `settings.gradle`, `build.gradle`, `SecurityConfig`에 이 모듈의 설정이나 Bean을 연결하지 않는다.
+4. 과거 Gradle 및 보안 스니펫은 비활성 상태를 유지한다.
+5. 운영 회귀 여부는 루트 계정·Security 테스트와 전체 프로젝트 테스트로 판정한다.
 
 ## 19. 완료 기준
 

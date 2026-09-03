@@ -1,16 +1,6 @@
 package org.example.matcheat.domain.product.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,7 +40,7 @@ public class ProductEntity {
     private Integer maxHeadcount;
 
     /**
-     *  1인분 가격
+     * 1인분 가격
      */
     @Column(name = "serving_price", nullable = false)
     private Integer servingPrice;
@@ -62,10 +52,17 @@ public class ProductEntity {
     private Double deliveryRadiusKm;
 
     /**
-     * 가게 주소
+     * 거리 계산에 사용하는 가게 도로명 주소
      */
     @Column(name = "store_address", nullable = false)
     private String storeAddress;
+
+    /**
+     * 실제 가게 위치를 확인하기 위한 상세 주소.
+     * 기존 상품 데이터와의 호환을 위해 nullable로 유지한다.
+     */
+    @Column(name = "store_address_detail")
+    private String storeAddressDetail;
 
     /**
      * 상품/메뉴명
@@ -154,6 +151,7 @@ public class ProductEntity {
             Integer servingPrice,
             Double deliveryRadiusKm,
             String storeAddress,
+            String storeAddressDetail,
             Double latitude,
             Double longitude,
             String category,
@@ -170,6 +168,8 @@ public class ProductEntity {
         this.servingPrice = servingPrice;
         this.deliveryRadiusKm = deliveryRadiusKm;
         this.storeAddress = storeAddress;
+        this.storeAddressDetail =
+                storeAddressDetail;
         this.productName = productName;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -192,6 +192,7 @@ public class ProductEntity {
             Integer servingPrice,
             Double deliveryRadiusKm,
             String storeAddress,
+            String storeAddressDetail,
             Double latitude,
             Double longitude,
             String category,
@@ -208,6 +209,7 @@ public class ProductEntity {
                 servingPrice,
                 deliveryRadiusKm,
                 storeAddress,
+                storeAddressDetail,
                 latitude,
                 longitude,
                 category,
@@ -232,6 +234,7 @@ public class ProductEntity {
             Integer servingPrice,
             Double deliveryRadiusKm,
             String storeAddress,
+            String storeAddressDetail,
             Double latitude,
             Double longitude,
             String category,
@@ -244,41 +247,46 @@ public class ProductEntity {
             verifyOwner(requesterAccountId);
         }
 
-        if(minHeadcount != null) {
+        if (minHeadcount != null) {
             this.minHeadcount = minHeadcount;
         }
 
-        if(maxHeadcount != null) {
+        if (maxHeadcount != null) {
             this.maxHeadcount = maxHeadcount;
         }
 
         validateHeadcountRange(this.minHeadcount, this.maxHeadcount);
 
-        if(servingPrice != null) {
+        if (servingPrice != null) {
             this.servingPrice = servingPrice;
         }
 
-        if(deliveryRadiusKm != null) {
+        if (deliveryRadiusKm != null) {
             this.deliveryRadiusKm = deliveryRadiusKm;
         }
 
-        if(storeAddress != null) {
+        if (storeAddress != null) {
             this.storeAddress = storeAddress;
+        }
+
+        if (storeAddressDetail != null) {
+            this.storeAddressDetail =
+                    storeAddressDetail;
         }
 
         if (productName != null) {
             this.productName = productName;
         }
 
-        if(latitude != null) {
+        if (latitude != null) {
             this.latitude = latitude;
         }
 
-        if(longitude != null) {
+        if (longitude != null) {
             this.longitude = longitude;
         }
 
-        if(category != null) {
+        if (category != null) {
             this.category = category;
         }
 
@@ -286,7 +294,7 @@ public class ProductEntity {
             this.description = description;
         }
 
-        if(dayOfWeek != null) {
+        if (dayOfWeek != null) {
             this.dayOfWeek = dayOfWeek;
         }
 
@@ -309,6 +317,15 @@ public class ProductEntity {
         }
 
         this.hidden = true;
+    }
+
+    /**
+     * 이 상품에 달린 리뷰들을 기준으로 재계산된 평점으로 덮어쓴다.
+     * domain/review가 리뷰를 새로 저장할 때마다 호출하며, 증분 계산이 아니라
+     * 매번 그 상품의 리뷰 전체를 다시 평균 낸 값을 그대로 반영한다.
+     */
+    public void updateRatingAvg(Double ratingAvg) {
+        this.ratingAvg = ratingAvg;
     }
 
     /**

@@ -10,48 +10,87 @@
 
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main>
+<main class="product-list-page">
     <section class="product-page-header">
         <div>
-            <h1>판매 조건 목록</h1>
-            <p>등록된 판매 조건을 조건별로 검색하고 확인할 수 있습니다.</p>
+            <p class="product-page-kicker">상품 탐색</p>
+            <h1>전체 상품 목록</h1>
+            <p>
+                등록된 상품을 주문 조건에 맞춰 검색하고 비교할 수 있습니다.
+            </p>
         </div>
 
-        <a th:href="@{/product/new}" id="newProductButton" class="button" style="display:none;">
-            새 판매 조건 등록
+        <a th:href="@{/product/new}"
+           id="newProductButton"
+           class="product-page-primary"
+           style="display:none;">
+            새 상품 등록
         </a>
     </section>
 
-    <div class="product-toolbar">
-        <a th:href="@{/product/update}">✏️ 판매 조건 수정</a>
-        <a th:href="@{/product/recommendations}">📊 판매자 추천 미리보기</a>
-    </div>
-
     <form id="searchForm" class="product-search-form">
-        <div class="product-search-field">
-            <label for="quantity">수량</label>
-            <input type="number" id="quantity" min="1" placeholder="예: 12">
-        </div>
+        <div class="product-search-fields">
+            <div class="product-search-field">
+                <label for="quantity">필요 수량</label>
+                <input
+                        type="number"
+                        id="quantity"
+                        min="1"
+                        placeholder="예: 30"
+                >
+            </div>
 
-        <div class="product-search-field">
-            <label for="category">카테고리</label>
-            <input type="text" id="category" placeholder="예: 한식">
-        </div>
+            <div class="product-search-field">
+                <label for="category">카테고리</label>
+                <input
+                        type="text"
+                        id="category"
+                        placeholder="예: 한식"
+                >
+            </div>
 
-        <div class="product-search-field">
-            <label for="servingPrice">1인분 가격</label>
-            <input type="number" id="servingPrice" min="1" placeholder="예: 10000">
-        </div>
+            <div class="product-search-field">
+                <label for="servingPrice">1인분 최대 가격</label>
+                <input
+                        type="number"
+                        id="servingPrice"
+                        min="1"
+                        placeholder="예: 15000"
+                >
+            </div>
 
-        <div class="product-search-actions">
-            <button type="submit" class="button">조회</button>
-            <button type="button" id="resetBtn" class="button-secondary">초기화</button>
+            <div class="product-search-actions">
+                <button
+                        type="submit"
+                        class="product-search-submit"
+                >
+                    검색
+                </button>
+
+                <button
+                        type="button"
+                        id="resetBtn"
+                        class="product-search-reset"
+                >
+                    초기화
+                </button>
+            </div>
         </div>
     </form>
 
-    <div id="productList" class="product-list">
-        <p>데이터를 불러오는 중입니다...</p>
-    </div>
+    <section class="product-list-section">
+        <div class="product-list-heading">
+            <h2 id="productCount">상품을 불러오는 중입니다.</h2>
+        </div>
+
+        <div id="productList" class="product-list">
+            <p class="product-list-message">
+                데이터를 불러오는 중입니다...
+            </p>
+        </div>
+
+        <div id="productPagination" class="product-pagination"></div>
+    </section>
 </main>
 
 <script type="module" th:src="@{/product/js/product-list.js}"></script>

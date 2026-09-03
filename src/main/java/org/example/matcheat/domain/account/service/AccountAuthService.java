@@ -8,6 +8,11 @@ import org.example.matcheat.domain.account.security.AccessTokenIssuer;
 import org.example.matcheat.domain.account.repository.DuplicateUserEmailException;
 import org.example.matcheat.domain.account.security.PasswordHasher;
 import org.example.matcheat.domain.account.repository.UserCredentialRepository;
+import org.example.matcheat.domain.account.repository.AccountPenaltyRepository;
+import org.example.matcheat.domain.account.dto.AccountReportCreateRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.Clock;
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,14 +22,62 @@ public class AccountAuthService {
     private final UserCredentialRepository repository;
     private final PasswordHasher passwordHasher;
     private final AccessTokenIssuer tokenIssuer;
+    private final AccountPenaltyRepository penalties;
+    private final AccountReportService reports;
+    private final Clock clock;
 
+    @Autowired
     public AccountAuthService(
             UserCredentialRepository repository,
             PasswordHasher passwordHasher,
-            AccessTokenIssuer tokenIssuer) {
+            AccessTokenIssuer tokenIssuer,
+            AccountPenaltyRepository penalties,
+            AccountReportService reports,
+            Clock accountClock) {
         this.repository = repository;
         this.passwordHasher = passwordHasher;
         this.tokenIssuer = tokenIssuer;
+        this.penalties = penalties;
+        this.reports = reports;
+        this.clock = accountClock;
+    }
+
+    AccountAuthService(
+            UserCredentialRepository repository,
+            PasswordHasher passwordHasher,
+            AccessTokenIssuer tokenIssuer) {
+        this(repository, passwordHasher, tokenIssuer, null, null, Clock.systemUTC());
+    }
+
+    public SuspensionResult suspensionStatus(String rawEmail, String password) {
+        UserAccount account = requireCredentials(rawEmail, password);
+        if (account.status() != UserStatus.SUSPENDED) {
+            throw new AccountApplicationException(AccountErrorCode.VALIDATION_FAILED, "Account is not suspended.");
+        }
+        Instant now = clock.instant();
+        return penalties.findFirstByUserIdAndReleasedAtIsNullAndExpiresAtAfterOrderByExpiresAtDesc(account.id(), now)
+                .map(penalty -> new SuspensionResult(penalty.getReason(), penalty.getExpiresAt(), false))
+                .orElseGet(() -> new SuspensionResult(
+                        repository.findManualSuspensionReason(account.id()).orElse("관리자 수동 정지"), null, true));
+    }
+
+    @Transactional
+    public void submitSuspensionAppeal(String rawEmail, String password, String message) {
+        UserAccount account = requireCredentials(rawEmail, password);
+        if (account.status() != UserStatus.SUSPENDED) {
+            throw new AccountApplicationException(AccountErrorCode.VALIDATION_FAILED, "Account is not suspended.");
+        }
+        reports.create(account.id(), new AccountReportCreateRequest(
+                "Suspension appeal", message, null, null));
+    }
+
+    private UserAccount requireCredentials(String rawEmail, String password) {
+        UserAccount account = repository.findByEmail(EmailNormalizer.normalize(rawEmail))
+                .orElseThrow(AccountAuthService::invalidCredentials);
+        if (account.passwordHash() == null || !passwordHasher.matches(password, account.passwordHash())) {
+            throw invalidCredentials();
+        }
+        return account;
     }
 
     @Transactional
@@ -108,5 +161,8 @@ public class AccountAuthService {
     }
 
     public record EmailAvailability(String email, boolean available) {
+    }
+
+    public record SuspensionResult(String reason, Instant expiresAt, boolean indefinite) {
     }
 }

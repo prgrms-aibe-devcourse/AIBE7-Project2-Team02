@@ -39,6 +39,9 @@ public class OrderRequestUpdateDTO {
 
     private String deliveryAddress;
 
+    @Size(max = 255)
+    private String deliveryAddressDetail;
+
     /**
      * 조회된 주문 요청 정보를 수정용 DTO로 변환
      */
@@ -53,6 +56,8 @@ public class OrderRequestUpdateDTO {
         dto.budget = response.getBudget();
         dto.category = response.getCategory();
         dto.deliveryAddress = response.getDeliveryAddress();
+        dto.deliveryAddressDetail =
+                response.getDeliveryAddressDetail();
 
         return dto;
     }

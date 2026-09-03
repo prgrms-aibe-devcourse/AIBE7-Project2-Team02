@@ -6,22 +6,25 @@ import org.example.matcheat.domain.quote.dto.QuoteDirectRequestToBuyer;
 import org.example.matcheat.domain.quote.dto.QuoteDirectRequestToSeller;
 import org.example.matcheat.domain.quote.entity.Quote;
 import org.example.matcheat.domain.quote.repository.QuoteRepository;
+import org.example.matcheat.support.product.ProductOwnerLookup;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class QuoteServiceTest {
     private final QuoteRepository quotes = mock(QuoteRepository.class);
     private final TradeAccountValidationService accounts = mock(TradeAccountValidationService.class);
-    private final QuoteService service = new QuoteService(quotes, mock(ChatService.class), accounts);
+    private final QuoteService service =
+            new QuoteService(
+                    quotes,
+                    mock(ChatService.class),
+                    accounts,
+                    mock(ProductOwnerLookup.class)
+            );
 
     @Test
     void mapsSellerAccountAndValidatesTargetBuyerBeforeStandaloneQuoteCreation() {

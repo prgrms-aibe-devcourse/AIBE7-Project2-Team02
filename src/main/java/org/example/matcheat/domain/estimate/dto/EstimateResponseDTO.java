@@ -20,11 +20,17 @@ import java.time.LocalDateTime;
  */
 public class EstimateResponseDTO {
 
-    /** 견적 ID */
+    /**
+     * 견적 ID
+     */
     private Long id;
-    /** 견적 생성 일시 */
+    /**
+     * 견적 생성 일시
+     */
     private LocalDateTime createdAt;
-    /** 구매자가 작성한 상세 설명 */
+    /**
+     * 구매자가 작성한 상세 설명
+     */
     private String description;
 
     @JsonIgnore
@@ -33,27 +39,53 @@ public class EstimateResponseDTO {
     @JsonIgnore
     private Long sellerId;
 
-    /** 근거가 된 상품 ID */
+    /**
+     * 근거가 된 상품 ID
+     */
     private Long productId;
-    /** 예산 금액 */
+    /**
+     * 예산 금액
+     */
     private BigDecimal budget;
-    /** 예산 유형(1인당/총액) */
+    /**
+     * 예산 유형(1인당/총액)
+     */
     private BudgetType budgetType;
-    /** 상품/항목명 */
+    /**
+     * 상품/항목명
+     */
     private String itemName;
-    /** 주문 수량(인분 수) */
+    /**
+     * 주문 수량(인분 수)
+     */
     private Integer quantity;
-    /** 행사/이용 일시 */
+    /**
+     * 행사/이용 일시
+     */
     private LocalDateTime eventDateTime;
-    /** 견적 이미지 URL */
+    /**
+     * 견적 이미지 URL
+     */
     private String estimateImage;
-    /** 배송(행사) 주소 */
+    /**
+     * 배송(행사) 도로명 주소
+     */
     private String deliveryAddress;
-    /** 배송(행사) 주소를 지오코딩한 위도 */
+    /**
+     * 실제 배송 위치를 확인하기 위한 상세 주소
+     */
+    private String deliveryAddressDetail;
+    /**
+     * 배송(행사) 주소를 지오코딩한 위도
+     */
     private Double latitude;
-    /** 배송(행사) 주소를 지오코딩한 경도 */
+    /**
+     * 배송(행사) 주소를 지오코딩한 경도
+     */
     private Double longitude;
-    /** 견적 진행 상태 */
+    /**
+     * 견적 진행 상태
+     */
     private EstimateStatus status;
 
     /**
@@ -85,6 +117,7 @@ public class EstimateResponseDTO {
                 .eventDateTime(entity.getEventDateTime())
                 .estimateImage(entity.getEstimateImage())
                 .deliveryAddress(entity.getDeliveryAddress())
+                .deliveryAddressDetail(entity.getDeliveryAddressDetail())
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())
                 .status(entity.getStatus())
