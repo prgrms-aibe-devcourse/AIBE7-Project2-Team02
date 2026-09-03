@@ -9,10 +9,10 @@
 
 | 참가자 | 담당 역할 | 담당 도메인 |
 |---|---|---|
-| 정민석 | 판매자 도메인 및 역매칭 | `product`, `matching/product`(역매칭), `estimate`, `review` |
 | 김해송 (팀 리딩) | 실시간 협상 · AI · 결제 | `chat`, `quote`(AI 견적 요약), `payment`, 통합 브랜치 병합 전담 |
 | 김현중 | 주문 라이프사이클 · 매칭 엔진 | `order`, `matching`(정매칭), `proposal` |
 | 박한솔 | 인증 · 보안 · 계정 아키텍처 | `account`(회원가입 · 로그인 · JWT · 관리자 · 마이페이지) |
+| 정민석 | 판매자 도메인 및 역매칭 | `product`, `matching/product`(역매칭), `estimate`, `review` |
 
 ## 주요 기능
 
