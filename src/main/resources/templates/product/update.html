@@ -134,33 +134,58 @@
                     </div>
                 </div>
 
-                <div class="product-form-full">
-                    <label for="storeAddress">
-                        가게 주소 <em>*</em>
-                    </label>
+                <div class="product-form-row">
 
-                    <div class="product-address-field">
+                    <div class="product-form-field">
+                        <label for="storeAddress">
+                            가게 주소 <em>*</em>
+                        </label>
+
+                        <div class="product-address-field">
+                            <input
+                                    type="text"
+                                    id="storeAddress"
+                                    autocomplete="street-address"
+                                    required
+                                    readonly
+                                    disabled
+                            >
+
+                            <button
+                                    type="button"
+                                    id="storeAddressSearchButton"
+                                    class="product-address-search"
+                                    disabled
+                            >
+                                주소 재검색
+                            </button>
+                        </div>
+
+                        <div class="product-form-hint">
+                            주소를 변경하면 위치 정보가 다시 계산됩니다.
+                        </div>
+                    </div>
+
+                    <div class="product-form-field">
+                        <label for="storeAddressDetail">
+                            상세 주소 <em>*</em>
+                        </label>
+
                         <input
                                 type="text"
-                                id="storeAddress"
+                                id="storeAddressDetail"
+                                maxlength="255"
+                                autocomplete="address-line2"
+                                placeholder="예: 상가동 102호 / 3층 조리실"
                                 required
-                                readonly
                                 disabled
                         >
 
-                        <button
-                                type="button"
-                                id="storeAddressSearchButton"
-                                class="product-address-search"
-                                disabled
-                        >
-                            주소 재검색
-                        </button>
+                        <div class="product-form-hint">
+                            실제 가게 위치를 상세하게 입력해주세요.
+                        </div>
                     </div>
 
-                    <div class="product-form-hint">
-                        주소를 변경하면 위치 정보가 다시 계산됩니다.
-                    </div>
                 </div>
 
                 <div class="product-form-full">

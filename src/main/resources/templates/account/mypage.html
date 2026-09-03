@@ -24,7 +24,19 @@
                data-view-group="registration">
                 등록 관리
             </a>
-            <a th:href="@{/mypage/offers}" data-view="offers">제안 관리</a>
+            <a th:href="@{/mypage/buying-estimates}"
+               data-view="buying-estimates"
+               data-view-group="buying-negotiation">
+                구매 협의
+            </a>
+
+            <a th:href="@{/mypage/selling-estimates}"
+               data-view="selling-estimates"
+               data-view-group="selling-negotiation"
+               data-seller-navigation
+               hidden>
+                판매 협의
+            </a>
             <a th:href="@{/mypage/purchases}"
                data-view="purchases"
                data-view-group="trade">

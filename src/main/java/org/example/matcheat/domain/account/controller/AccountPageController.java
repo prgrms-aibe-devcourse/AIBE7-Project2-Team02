@@ -26,6 +26,10 @@ public class AccountPageController {
             "/mypage/products",
             "/mypage/purchases",
             "/mypage/sales",
+            "/mypage/buying-estimates",
+            "/mypage/buying-proposals",
+            "/mypage/selling-estimates",
+            "/mypage/selling-proposals",
             "/mypage/offers",
             "/mypage/chats",
             "/mypage/reports"

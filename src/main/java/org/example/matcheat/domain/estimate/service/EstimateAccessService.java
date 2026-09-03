@@ -68,6 +68,7 @@ public class EstimateAccessService {
                 dto.getEventDateTime(),
                 dto.getEstimateImage(),
                 dto.getDeliveryAddress(),
+                dto.getDeliveryAddressDetail(),
                 coordinates.latitude(),
                 coordinates.longitude()
         );

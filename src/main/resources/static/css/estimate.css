@@ -1,0 +1,646 @@
+/* 구매자가 상품 판매자에게 견적을 요청하는 화면에서 사용하는 스타일 */
+
+.estimate-page-header {
+    margin-bottom: 24px;
+}
+
+.estimate-page-header h1 {
+    margin: 0 0 8px;
+
+    color: #1F2937;
+
+    font-size: 30px;
+    line-height: 1.3;
+}
+
+.estimate-page-header p {
+    margin: 0;
+
+    color: #6B7280;
+
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+
+/* 상품 요약 */
+
+.estimate-product-summary {
+    margin-bottom: 20px;
+    padding: 24px;
+
+    border: 1px solid #E8DDD8;
+    border-radius: 8px;
+
+    background-color: #fff;
+}
+
+.estimate-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 16px;
+
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+
+    border-bottom: 1px solid #E8DDD8;
+}
+
+.estimate-section-heading h2 {
+    margin: 0;
+
+    color: #1F2937;
+
+    font-size: 18px;
+}
+
+.estimate-product-link {
+    color: #C94A30;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.estimate-product-link:hover {
+    text-decoration: underline;
+}
+
+.estimate-summary-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 24px;
+}
+
+.estimate-summary-grid > div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+
+    min-width: 0;
+}
+
+.estimate-summary-label {
+    color: #6B7280;
+
+    font-size: 13px;
+}
+
+.estimate-summary-grid strong {
+    overflow: hidden;
+
+    color: #1F2937;
+
+    font-size: 15px;
+
+    text-overflow: ellipsis;
+}
+
+
+/* 요청 작성 카드 */
+
+.estimate-form-card {
+    padding: 28px;
+
+    border: 1px solid #E8DDD8;
+    border-radius: 8px;
+
+    background-color: #fff;
+}
+
+.estimate-form-card h2 {
+    margin: 0 0 24px;
+
+    color: #1F2937;
+
+    font-size: 20px;
+}
+
+.estimate-form-row {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 24px;
+
+    margin-bottom: 24px;
+}
+
+.estimate-form-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.estimate-form-field label {
+    color: #374151;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.estimate-form-field input,
+.estimate-form-field select,
+.estimate-form-field textarea {
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: 1px solid #CFC1BA;
+    border-radius: 6px;
+
+    background-color: #fff;
+    color: #1F2937;
+
+    font: inherit;
+    font-size: 14px;
+
+    transition: border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.estimate-form-field input,
+.estimate-form-field select {
+    min-height: 44px;
+}
+
+.estimate-form-field textarea {
+    min-height: 140px;
+
+    line-height: 1.6;
+
+    resize: vertical;
+}
+
+.estimate-form-field input:focus,
+.estimate-form-field select:focus,
+.estimate-form-field textarea:focus {
+    border-color: #E85D3F;
+    outline: none;
+
+    box-shadow: 0 0 0 3px rgba(232, 93, 63, 0.12);
+}
+
+.estimate-form-full {
+    margin-bottom: 24px;
+}
+
+.estimate-form-hint {
+    margin: 0;
+
+    color: #6B7280;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* 단위가 붙는 입력 */
+
+.estimate-input-unit {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+.estimate-input-unit input {
+    flex: 1;
+}
+
+.estimate-input-unit span {
+    flex-shrink: 0;
+
+    color: #6B7280;
+
+    font-size: 14px;
+}
+
+
+/* 주소 검색 */
+
+.estimate-address-row {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr) auto;
+
+    gap: 8px;
+}
+
+.estimate-address-button {
+    min-width: 104px;
+    padding: 0 16px;
+
+    border: 1px solid #CFC1BA;
+    border-radius: 6px;
+
+    background-color: #fff;
+    color: #374151;
+
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.estimate-address-button:hover {
+    border-color: #E85D3F;
+
+    background-color: #FFF8F5;
+}
+
+
+/* 오류 */
+
+.estimate-notice,
+.estimate-form-error {
+    padding: 14px 16px;
+
+    border: 1px solid #F59E0B;
+    border-radius: 6px;
+
+    background-color: #FFF7E8;
+    color: #92400E;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.estimate-notice {
+    margin-bottom: 20px;
+}
+
+.estimate-form-error {
+    margin-bottom: 20px;
+}
+
+.estimate-notice[hidden],
+.estimate-form-error[hidden] {
+    display: none;
+}
+
+
+/* 하단 버튼 */
+
+.estimate-form-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-top: 8px;
+    padding-top: 24px;
+
+    border-top: 1px solid #E8DDD8;
+}
+
+.estimate-cancel-button,
+.estimate-submit-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    min-width: 104px;
+    height: 42px;
+    padding: 0 18px;
+
+    border-radius: 6px;
+
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.estimate-cancel-button {
+    border: 1px solid #CFC1BA;
+
+    background-color: #fff;
+    color: #374151;
+}
+
+.estimate-cancel-button:hover {
+    background-color: #FAF7F5;
+}
+
+.estimate-submit-button {
+    border: 1px solid #E85D3F;
+
+    background-color: #E85D3F;
+    color: #fff;
+
+    cursor: pointer;
+}
+
+.estimate-submit-button:hover {
+    border-color: #C94A30;
+
+    background-color: #C94A30;
+}
+
+.estimate-submit-button:disabled {
+    border-color: #D1D5DB;
+
+    background-color: #D1D5DB;
+
+    cursor: default;
+}
+
+
+/* 모바일 */
+
+@media (max-width: 760px) {
+
+    .estimate-summary-grid,
+    .estimate-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .estimate-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .estimate-address-row {
+        grid-template-columns: 1fr;
+    }
+
+    .estimate-address-button {
+        min-height: 42px;
+    }
+}
+
+/* 견적 요청 상세 화면 */
+
+.estimate-detail-page {
+    width: min(
+            var(--content-width),
+            calc(100% - 48px)
+    );
+    margin: 0 auto;
+    padding: 44px 0 64px;
+}
+
+.estimate-detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+
+    margin-bottom: 22px;
+}
+
+.estimate-detail-kicker {
+    margin: 0 0 6px;
+
+    color: var(--color-primary);
+
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.estimate-detail-header h1 {
+    margin: 0;
+
+    font-size: 28px;
+    letter-spacing: -0.025em;
+}
+
+.estimate-detail-header p:not(.estimate-detail-kicker) {
+    margin: 8px 0 0;
+
+    color: var(--color-text-secondary);
+
+    font-size: 14px;
+}
+
+.estimate-detail-status {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 30px;
+    padding: 4px 10px;
+
+    border-radius: var(--radius-sm);
+
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estimate-detail-card {
+    margin-bottom: 16px;
+    padding: 22px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface);
+}
+
+.estimate-detail-section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+.estimate-detail-section-heading h2 {
+    margin: 0;
+
+    font-size: 17px;
+}
+
+.estimate-detail-section-heading p {
+    margin: 5px 0 0;
+
+    color: var(--color-text-secondary);
+
+    font-size: 13px;
+}
+
+.estimate-detail-text-link {
+    flex: none;
+
+    color: var(--color-primary);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.estimate-detail-product {
+    display: grid;
+    gap: 6px;
+}
+
+.estimate-detail-product span,
+.estimate-detail-field span {
+    color: var(--color-text-secondary);
+
+    font-size: 12px;
+}
+
+.estimate-detail-product strong {
+    font-size: 18px;
+}
+
+.estimate-detail-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 1px;
+
+    border: 1px solid var(--color-border);
+
+    background: var(--color-border);
+}
+
+.estimate-detail-field {
+    display: grid;
+    align-content: center;
+    gap: 7px;
+
+    min-height: 88px;
+    padding: 16px 18px;
+
+    background: var(--color-surface);
+}
+
+.estimate-detail-field-wide {
+    grid-column: 1 / -1;
+}
+
+.estimate-detail-field strong {
+    font-size: 15px;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.estimate-detail-description {
+    min-height: 84px;
+    margin: 0;
+    padding: 16px 18px;
+
+    border: 1px solid var(--color-border);
+
+    background: var(--color-surface-subtle);
+    color: var(--color-text-primary);
+
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.estimate-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    margin-top: 20px;
+    padding-top: 20px;
+
+    border-top: 1px solid var(--color-border);
+}
+
+.estimate-detail-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+    padding: 0 18px;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.estimate-detail-button-secondary {
+    border-color: var(--color-border-strong);
+
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.estimate-detail-button-primary {
+    background: var(--color-primary);
+    color: #ffffff;
+}
+
+.estimate-detail-button-primary:hover {
+    background: var(--color-primary-hover);
+}
+
+.estimate-detail-state {
+    padding: 28px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+
+    text-align: center;
+}
+
+.estimate-detail-state-error {
+    border-color: var(--color-danger);
+
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+}
+
+@media (max-width: 760px) {
+    .estimate-detail-page {
+        width: min(
+                100% - 28px,
+                var(--content-width)
+        );
+
+        padding-top: 28px;
+    }
+
+    .estimate-detail-header {
+        display: grid;
+    }
+
+    .estimate-detail-status {
+        justify-self: start;
+    }
+
+    .estimate-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .estimate-detail-field-wide {
+        grid-column: auto;
+    }
+
+    .estimate-detail-section-heading {
+        display: grid;
+    }
+
+    .estimate-detail-actions {
+        display: grid;
+    }
+
+    .estimate-detail-button {
+        width: 100%;
+    }
+}

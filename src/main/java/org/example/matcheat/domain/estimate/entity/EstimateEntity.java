@@ -1,19 +1,11 @@
 package org.example.matcheat.domain.estimate.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.matcheat.domain.order.enums.BudgetType;
 import org.example.matcheat.domain.estimate.enums.EstimateStatus;
+import org.example.matcheat.domain.order.enums.BudgetType;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -32,25 +24,35 @@ import java.time.LocalDateTime;
  */
 public class EstimateEntity {
 
-    /** 견적 PK */
+    /**
+     * 견적 PK
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 견적 생성 일시 */
+    /**
+     * 견적 생성 일시
+     */
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** 구매자가 직접 작성한 상세 설명 */
+    /**
+     * 구매자가 직접 작성한 상세 설명
+     */
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    /** 요청자(구매자) 본인의 계정 ID. OrderRequest를 가리키는 FK가 아니다 */
+    /**
+     * 요청자(구매자) 본인의 계정 ID. OrderRequest를 가리키는 FK가 아니다
+     */
     @Column(name = "request_id", nullable = false)
     private Long requestId;
 
-    /** 견적을 받는 판매자의 seller_profiles PK (계정 ID가 아니다) */
+    /**
+     * 견적을 받는 판매자의 seller_profiles PK (계정 ID가 아니다)
+     */
     @Column(name = "seller_id", nullable = false)
     private Long sellerId;
 
@@ -60,16 +62,22 @@ public class EstimateEntity {
     @Column(name = "product_id")
     private Long productId;
 
-    /** 예산 금액 */
+    /**
+     * 예산 금액
+     */
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal budget;
 
-    /** 예산 유형(1인당/총액) */
+    /**
+     * 예산 유형(1인당/총액)
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "budget_type", nullable = false)
     private BudgetType budgetType;
 
-    /** 상품/항목명 */
+    /**
+     * 상품/항목명
+     */
     @Column(name = "item_name", nullable = false)
     private String itemName;
 
@@ -79,11 +87,15 @@ public class EstimateEntity {
     @Column(nullable = false)
     private Integer quantity;
 
-    /** 행사/이용 일시 */
+    /**
+     * 행사/이용 일시
+     */
     @Column(name = "event_date_time", nullable = false)
     private LocalDateTime eventDateTime;
 
-    /** 견적 이미지 URL */
+    /**
+     * 견적 이미지 URL
+     */
     @Column(name = "estimate_image", columnDefinition = "TEXT")
     private String estimateImage;
 
@@ -93,15 +105,28 @@ public class EstimateEntity {
     @Column(name = "delivery_address", nullable = false)
     private String deliveryAddress;
 
-    /** 배송(행사) 주소를 지오코딩한 위도 */
+    /**
+     * 실제 배송 위치를 확인하기 위한 상세 주소이다.
+     * 기존 견적 데이터와의 호환을 위해 DB 컬럼 자체는 nullable로 유지한다.
+     */
+    @Column(name = "delivery_address_detail")
+    private String deliveryAddressDetail;
+
+    /**
+     * 배송(행사) 주소를 지오코딩한 위도
+     */
     @Column(nullable = true)
     private Double latitude;
 
-    /** 배송(행사) 주소를 지오코딩한 경도 */
+    /**
+     * 배송(행사) 주소를 지오코딩한 경도
+     */
     @Column(nullable = true)
     private Double longitude;
 
-    /** 견적 진행 상태 */
+    /**
+     * 견적 진행 상태
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstimateStatus status;
@@ -121,10 +146,21 @@ public class EstimateEntity {
             LocalDateTime eventDateTime,
             String estimateImage,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude
     ) {
-        validateRequiredFields(requestId, budget, budgetType, itemName, quantity, eventDateTime, sellerId, deliveryAddress);
+        validateRequiredFields(
+                requestId,
+                budget,
+                budgetType,
+                itemName,
+                quantity,
+                eventDateTime,
+                sellerId,
+                deliveryAddress,
+                deliveryAddressDetail
+        );
         this.description = description;
         this.requestId = requestId;
         this.sellerId = sellerId;
@@ -136,6 +172,7 @@ public class EstimateEntity {
         this.eventDateTime = eventDateTime;
         this.estimateImage = estimateImage;
         this.deliveryAddress = deliveryAddress;
+        this.deliveryAddressDetail = deliveryAddressDetail;
         this.latitude = latitude;
         this.longitude = longitude;
         this.status = EstimateStatus.REQUESTED;
@@ -157,6 +194,7 @@ public class EstimateEntity {
             LocalDateTime eventDateTime,
             String estimateImage,
             String deliveryAddress,
+            String deliveryAddressDetail,
             Double latitude,
             Double longitude
     ) {
@@ -172,6 +210,7 @@ public class EstimateEntity {
                 eventDateTime,
                 estimateImage,
                 deliveryAddress,
+                deliveryAddressDetail,
                 latitude,
                 longitude
         );
@@ -189,7 +228,8 @@ public class EstimateEntity {
             Integer quantity,
             LocalDateTime eventDateTime,
             Long sellerId,
-            String deliveryAddress
+            String deliveryAddress,
+            String deliveryAddressDetail
     ) {
         if (requestId == null) {
             throw new IllegalArgumentException("requestId는 필수입니다.");
@@ -214,6 +254,11 @@ public class EstimateEntity {
         }
         if (deliveryAddress == null || deliveryAddress.isBlank()) {
             throw new IllegalArgumentException("deliveryAddress는 필수입니다.");
+        }
+        if (deliveryAddressDetail == null || deliveryAddressDetail.isBlank()) {
+            throw new IllegalArgumentException(
+                    "deliveryAddressDetail은 필수입니다."
+            );
         }
     }
 }

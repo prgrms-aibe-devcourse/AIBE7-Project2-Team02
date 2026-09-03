@@ -70,6 +70,7 @@ public class OrderRequestService {
                         dto.getBudget(),
                         dto.getCategory(),
                         dto.getDeliveryAddress(),
+                        dto.getDeliveryAddressDetail(),
                         coordinates.latitude(),
                         coordinates.longitude(),
                         referenceImageUrl
@@ -206,6 +207,7 @@ public class OrderRequestService {
                 dto.getBudget(),
                 dto.getCategory(),
                 dto.getDeliveryAddress(),
+                dto.getDeliveryAddressDetail(),
                 latitude,
                 longitude,
                 referenceImageUrl

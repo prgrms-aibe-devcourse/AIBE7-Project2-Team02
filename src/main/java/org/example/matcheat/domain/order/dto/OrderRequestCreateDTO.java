@@ -44,6 +44,16 @@ public class OrderRequestCreateDTO {
     @NotBlank // 문자열이 비어 있으면 안 됨
     private String category;
 
+    /**
+     * 거리 계산에 사용하는 배송지 도로명 주소
+     */
     @NotBlank
     private String deliveryAddress;
+
+    /**
+     * 실제 배송 위치를 확인하기 위한 상세 주소
+     */
+    @NotBlank
+    @Size(max = 255)
+    private String deliveryAddressDetail;
 }
