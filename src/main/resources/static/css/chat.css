@@ -553,30 +553,6 @@
     margin-top: 12px;
 }
 
-.chat-product-preview {
-    text-align: left;
-}
-
-.chat-product-preview-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-
-.chat-product-preview-head strong {
-    font-size: 0.9rem;
-}
-
-.chat-product-preview .chat-quote-hint {
-    margin-bottom: 8px;
-}
-
-.chat-product-preview .chat-btn {
-    width: 100%;
-    margin-top: 10px;
-}
-
 /* 토스트 */
 
 .chat-toast {
@@ -629,55 +605,7 @@
     .chat-list-panel {
         max-height: 220px;
     }
-
-
-    /* 상품 태그 (견적 카드 상단, 테스트용 productId 변경 포함) */
-
-    .chat-product-tag {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .chat-product-tag-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .chat-product-tag-name {
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
-
-    .chat-product-tag-id {
-        font-size: 0.72rem;
-        color: var(--chat-ink-soft);
-    }
-
-    .chat-product-tag-edit {
-        display: flex;
-        gap: 6px;
-    }
-
-    .chat-product-tag-edit input {
-        width: 90px;
-        padding: 6px 8px;
-        border-radius: 8px;
-        border: 1px solid var(--chat-line);
-        font-size: 0.8rem;
-    }
-
-    .chat-quote-field textarea {
-        padding: 8px 10px;
-        border-radius: 8px;
-        border: 1px solid var(--chat-line);
-        font-size: 0.86rem;
-        min-height: 70px;
-        resize: vertical;
-        font-family: inherit;
-    }
 }
-
+.chat-room-tools { display: flex; align-items: center; gap: 10px; }
+.chat-report-link { color: #9a4530; font-size: .75rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.chat-report-link[hidden] { display: none; }

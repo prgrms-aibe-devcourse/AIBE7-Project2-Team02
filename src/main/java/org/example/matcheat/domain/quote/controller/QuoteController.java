@@ -26,16 +26,15 @@ public class QuoteController {
 
 	private final QuoteService quoteService;
 
-	@Operation(summary = "독립 견적서 생성 (채팅방 자동 생성)", description = "sellerId 또는 productId 중 하나로 판매자를 지정한다.")
+	@Operation(summary = "채팅방 자동 생성 + 견적서 생성", description = "구매자가 판매자를 지정해 견적을 요청하면 1:1 채팅방(PROPOSAL)을 자동 생성하고 견적서를 만듭니다.")
 	@PostMapping("/direct")
 	public ResponseEntity<QuoteResponse> createQuoteWithNewChatRoom(
 			@AuthenticationPrincipal Jwt jwt,
-			@RequestParam(required = false) Long sellerId,
-			@RequestParam(required = false) Long productId,
-			@RequestBody QuoteCreateRequest request) {
+			@RequestParam Long sellerId,
+			@Valid @RequestBody QuoteCreateRequest request) {
 
-		Long currentUserId = Long.valueOf(jwt.getSubject());
-		QuoteResponse response = quoteService.createQuoteWithNewChatRoom(currentUserId, sellerId, productId, request);
+		Long currentBuyerId = Long.valueOf(jwt.getSubject());
+		QuoteResponse response = quoteService.createQuoteWithNewChatRoom(currentBuyerId, sellerId, request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 

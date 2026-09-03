@@ -106,7 +106,6 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<List<ProductResponseDTO>> search(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(required = false) Long sellerId,
             @RequestParam(required = false) String quantity,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String servingPrice

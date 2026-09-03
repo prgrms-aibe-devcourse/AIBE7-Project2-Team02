@@ -8,7 +8,7 @@ import org.example.matcheat.domain.chat.entity.ChatRoom;
 import org.example.matcheat.domain.chat.repository.ChatMessageRepository;
 import org.example.matcheat.domain.chat.repository.ChatRoomRepository;
 import org.example.matcheat.domain.account.service.TradeAccountValidationService;
-import org.example.matcheat.support.product.ProductOwnerLookup;
+import org.example.matcheat.domain.chat.support.ProductOwnerLookup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +33,7 @@ public class ChatService {
 		Long resolvedSellerId;
 		if (request.getProductId() != null) {
 			Long ownerAccountId = productOwnerLookup.findOwnerAccountId(request.getProductId());
+			// 상품 등록자가 실제 "승인된 판매자"인지 검증 + seller_id 획득을 한 번에 처리
 			resolvedSellerId = accounts.approvedSellerIdForUser(ownerAccountId);
 		} else {
 			resolvedSellerId = request.getSellerId();
@@ -40,18 +41,20 @@ public class ChatService {
 		}
 
 		ChatRoom chatRoom = getOrCreateChatRoomEntity(
-				request.getProposalId(), request.getOriginType(), currentUserId, resolvedSellerId, request.getProductId());
+				request.getProposalId(), request.getOriginType(), currentUserId, resolvedSellerId);
 		return ChatRoomResponse.from(chatRoom);
 	}
 
 	@Transactional
-	public ChatRoom getOrCreateChatRoomForQuote(Long proposalId, ChatRoom.OriginType originType,
-	                                            Long buyerId, Long sellerId, Long productId) {
+	public ChatRoom getOrCreateChatRoomForQuote(Long proposalId, ChatRoom.OriginType originType, Long buyerId, Long sellerId) {
 		accounts.requireActiveUser(buyerId);
 		accounts.requireApprovedSeller(sellerId);
-		return getOrCreateChatRoomEntity(proposalId, originType, buyerId, sellerId, productId);
+		return getOrCreateChatRoomEntity(proposalId, originType, buyerId, sellerId);
 	}
 
+	/**
+	 * [추가] 외부 도메인(QuoteService 등) 전용 ChatRoom 엔티티 조회 메서드
+	 */
 	@Transactional(readOnly = true)
 	public ChatRoom getChatRoomEntity(Long chatRoomId) {
 		return chatRoomRepository.findById(chatRoomId)
@@ -59,58 +62,41 @@ public class ChatService {
 	}
 
 	/**
-	 * [정책] proposalId가 있으면 그 기준으로만 기존 방 재사용.
-	 * proposalId가 없으면 buyerId+sellerId+originType+status 기준으로 기존 방 재사용.
-	 * [A안] 기존 방을 재사용할 때는 productId를 절대 자동으로 바꾸지 않는다 —
-	 * 새 상품으로 넘어가려면 changeChatRoomProduct()를 통한 명시적 호출이 필요하다.
-	 * (프론트가 방의 기존 productId와 새로 들어온 productId를 비교해서 경고 문구를
-	 *  보여주고, 사용자가 확인한 뒤에만 그 API를 호출하는 흐름을 기대한다.)
+	 * [버그 수정] 기존 코드는 proposalId가 null인 경우(=Proposal 도메인이 아직 없어
+	 * /quotes/direct처럼 proposalId 없이 PROPOSAL 타입 방을 만드는 모든 경로)
+	 * 중복 방지 조회를 전혀 타지 않아, 같은 buyer-seller 조합으로 호출할 때마다
+	 * ChatRoom이 무한히 새로 생성됐다.
+	 *
+	 * 수정 후 규칙:
+	 * - proposalId가 있으면: 그 proposalId 기준으로만 기존 방 재사용 (오퍼 1개당 방 1개).
+	 * - proposalId가 없으면: PROPOSAL/INQUIRY 상관없이 buyerId+sellerId+originType+status
+	 *   기준으로 활성 상태인 기존 방을 재사용한다.
 	 */
-	private ChatRoom getOrCreateChatRoomEntity(Long proposalId, ChatRoom.OriginType requestedOriginType,
-	                                           Long buyerId, Long sellerId, Long productId) {
+	private ChatRoom getOrCreateChatRoomEntity(Long proposalId, ChatRoom.OriginType requestedOriginType, Long buyerId, Long sellerId) {
 		ChatRoom.OriginType resolvedOriginType = (proposalId != null)
 				? ChatRoom.OriginType.PROPOSAL
 				: (requestedOriginType != null ? requestedOriginType : ChatRoom.OriginType.INQUIRY);
 
 		if (proposalId != null) {
 			return chatRoomRepository.findByProposalId(proposalId)
-					.orElseGet(() -> createNewChatRoom(proposalId, resolvedOriginType, buyerId, sellerId, productId));
+					.orElseGet(() -> createNewChatRoom(proposalId, resolvedOriginType, buyerId, sellerId));
 		}
 
 		return chatRoomRepository.findByBuyerIdAndSellerIdAndOriginTypeAndStatus(
 						buyerId, sellerId, resolvedOriginType, ChatRoom.Status.ACTIVE)
-				.orElseGet(() -> createNewChatRoom(null, resolvedOriginType, buyerId, sellerId, productId));
+				.orElseGet(() -> createNewChatRoom(null, resolvedOriginType, buyerId, sellerId));
 	}
 
-	private ChatRoom createNewChatRoom(Long proposalId, ChatRoom.OriginType originType,
-	                                   Long buyerId, Long sellerId, Long productId) {
+	private ChatRoom createNewChatRoom(Long proposalId, ChatRoom.OriginType originType, Long buyerId, Long sellerId) {
 		ChatRoom chatRoom = ChatRoom.builder()
 				.proposalId(proposalId)
 				.quoteId(null)
-				.productId(productId)
 				.originType(originType)
 				.buyerId(buyerId)
 				.sellerId(sellerId)
 				.build();
 
 		return chatRoomRepository.save(chatRoom);
-	}
-
-	/**
-	 * [추가] 방이 가리키는 상품을 명시적으로 전환한다 (A안 + 안전장치).
-	 * 프론트가 "이 방은 이미 다른 상품(OO)에 대해 진행 중입니다. 전환할까요?" 같은
-	 * 경고를 띄운 뒤, 사용자가 확인했을 때만 이 메서드를 호출해야 한다.
-	 */
-	@Transactional
-	public ChatRoomResponse changeChatRoomProduct(Long chatRoomId, Long currentUserId, Long newProductId) {
-		ChatRoom chatRoom = getChatRoomEntity(chatRoomId);
-		chatRoom.validateParticipant(currentUserId, accounts.sellerIdForUserOrNull(currentUserId));
-
-		// 존재하지 않는 productId면 여기서 예외 (ProductOwnerLookup이 존재 검증 겸용)
-		productOwnerLookup.findOwnerAccountId(newProductId);
-
-		chatRoom.changeProduct(newProductId);
-		return ChatRoomResponse.from(chatRoom);
 	}
 
 	@Transactional
@@ -151,5 +137,17 @@ public class ChatService {
 				.toList();
 	}
 
-}
+	private static java.time.LocalDateTime sortAt(ChatRoomResponse room) {
+		return room.getLastMessageAt() != null ? room.getLastMessageAt() : room.getCreatedAt();
+	}
 
+	private static int compareNewestFirst(java.time.LocalDateTime left, java.time.LocalDateTime right) {
+		if (left == null) {
+			return right == null ? 0 : 1;
+		}
+		if (right == null) {
+			return -1;
+		}
+		return right.compareTo(left);
+	}
+}

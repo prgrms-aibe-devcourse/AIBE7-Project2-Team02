@@ -13,7 +13,6 @@ import org.example.matcheat.domain.quote.dto.QuoteUpdateRequest;
 import org.example.matcheat.domain.quote.entity.Quote;
 import org.example.matcheat.domain.quote.entity.QuoteNegotiation;
 import org.example.matcheat.domain.quote.repository.QuoteRepository;
-import org.example.matcheat.support.product.ProductOwnerLookup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +23,6 @@ public class QuoteService {
 	private final QuoteRepository quoteRepository;
 	private final ChatService chatService;
 	private final TradeAccountValidationService accounts;
-	private final ProductOwnerLookup productOwnerLookup;
 
 	@Transactional(readOnly = true)
 	public Quote getQuoteEntity(Long quoteId) {
@@ -40,45 +38,21 @@ public class QuoteService {
 	// 생성 - 채팅방 자동 생성 (기존 흐름: 구매자가 판매자를 지정해 견적 요청)
 	// -----------------------------------------------------------
 	@Transactional
-	public QuoteResponse createQuoteWithNewChatRoom(Long currentUserId, Long sellerId, Long productId,
-	                                                QuoteCreateRequest request) {
-		if (sellerId == null && productId == null) {
-			throw new IllegalArgumentException("sellerId 또는 productId 중 하나는 반드시 필요합니다.");
-		}
-
-		Long resolvedSellerId;
-		if (productId != null) {
-			Long ownerAccountId = productOwnerLookup.findOwnerAccountId(productId);
-			resolvedSellerId = accounts.approvedSellerIdForUser(ownerAccountId);
-		} else {
-			resolvedSellerId = sellerId;
-			accounts.requireApprovedSeller(resolvedSellerId);
-		}
-
-		// [수정] QuoteService의 private 헬퍼가 아니라 Quote의 정적 메서드 사용
-		long totalAmount = Quote.calculateTotalAmount(request.getQuantity(), request.getUnitPrice(), request.getDeliveryFee());
-
+	public QuoteResponse createQuoteWithNewChatRoom(Long currentBuyerId, Long sellerId, QuoteCreateRequest request) {
 		ChatRoom chatRoom = chatService.getOrCreateChatRoomForQuote(
-				null, ChatRoom.OriginType.PROPOSAL, currentUserId, resolvedSellerId, productId);
+				null, ChatRoom.OriginType.PROPOSAL, currentBuyerId, sellerId
+		);
 
-		Quote.SenderRole senderRole = currentUserId.equals(chatRoom.getBuyerId())
-				? Quote.SenderRole.BUYER : Quote.SenderRole.SELLER;
+		Quote.SenderRole senderRole = currentBuyerId.equals(chatRoom.getBuyerId())
+				? Quote.SenderRole.BUYER
+				: Quote.SenderRole.SELLER;
 
-		Quote quote = Quote.builder()
-				.chatRoomId(chatRoom.getId())
-				.buyerId(chatRoom.getBuyerId())
-				.sellerId(chatRoom.getSellerId())
-				.senderRole(senderRole)
-				.quantity(request.getQuantity())
-				.unitPrice(request.getUnitPrice())
-				.deliveryFee(request.getDeliveryFee())
-				.totalAmount(totalAmount)
-				.additionalNotes(request.getAdditionalNotes())
-				.status(Quote.QuoteStatus.SENT)
-				.build();
+		Quote quote = buildQuoteFromChatRoom(
+				chatRoom.getId(), chatRoom.getBuyerId(), chatRoom.getSellerId(), senderRole, request
+		);
 
 		Quote savedQuote = quoteRepository.save(quote);
-		chatService.updateChatRoomQuoteId(chatRoom.getId(), savedQuote.getId());
+		chatRoom.updateQuoteId(savedQuote.getId());
 
 		return QuoteResponse.from(savedQuote);
 	}
@@ -243,7 +217,6 @@ public class QuoteService {
 				.unitPrice(request.getUnitPrice())
 				.deliveryFee(request.getDeliveryFee())
 				.totalAmount(totalAmount)
-				.additionalNotes(request.getAdditionalNotes())
 				.status(Quote.QuoteStatus.SENT)
 				.build();
 	}

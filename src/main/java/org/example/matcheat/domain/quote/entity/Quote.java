@@ -82,7 +82,7 @@ public class Quote {
 		this.senderRole = senderRole;
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
+		this.deliveryFee = deliveryFee;
 		this.totalAmount = totalAmount;
 		this.additionalNotes = additionalNotes;
 		this.status = status != null ? status : QuoteStatus.SENT;

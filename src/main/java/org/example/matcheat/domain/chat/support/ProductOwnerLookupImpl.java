@@ -1,4 +1,4 @@
-package org.example.matcheat.support.product;
+package org.example.matcheat.domain.chat.support;
 
 import lombok.RequiredArgsConstructor;
 import org.example.matcheat.domain.product.repository.ProductRepository;

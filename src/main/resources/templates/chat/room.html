@@ -37,24 +37,11 @@
                 </button>
             </div>
 
-            <!-- 테스트/초기 진입용: 판매자 ID 또는 상품 ID로 바로 채팅방을 개설한다 -->
+            <!-- 테스트/초기 진입용: 판매자 ID를 알고 있을 때 바로 채팅방을 개설한다 -->
             <form id="newChatForm" class="chat-new-form" hidden>
                 <div class="chat-quote-field">
-                    <label for="newChatMode">시작 방식</label>
-                    <select id="newChatMode">
-                        <option value="SELLER_ID">판매자 ID로 시작</option>
-                        <option value="PRODUCT_ID">상품 ID로 바로 채팅하기</option>
-                    </select>
-                </div>
-
-                <div class="chat-quote-field" id="newChatSellerIdField">
                     <label for="newChatSellerId">상대 판매자 ID</label>
-                    <input type="number" id="newChatSellerId" min="1">
-                </div>
-
-                <div class="chat-quote-field" id="newChatProductIdField" hidden>
-                    <label for="newChatProductId">상품 ID</label>
-                    <input type="number" id="newChatProductId" min="1">
+                    <input type="number" id="newChatSellerId" min="1" required>
                 </div>
 
                 <div class="chat-quote-field">
@@ -127,21 +114,58 @@
                         <p class="chat-upload-status" id="chatUploadStatus" hidden></p>
                     </div>
 
-                    <!-- 견적 영역: 공식 견적서만 -->
+                    <!-- 견적 영역: 1차 협상 + 공식 견적서 -->
                     <aside class="chat-quote-column" id="chatQuoteColumn">
 
-                        <!-- 연결된 상품 표시 + 테스트용 변경 -->
+                        <!-- 1차 협상 견적 -->
                         <section class="chat-quote-card">
-                            <div class="chat-product-tag">
-                                <div class="chat-product-tag-info">
-                                    <span class="chat-product-tag-name" id="quoteProductName">연결된 상품 없음</span>
-                                    <span class="chat-product-tag-id" id="quoteProductId">-</span>
-                                </div>
-                                <div class="chat-product-tag-edit">
-                                    <input type="number" id="quoteProductIdInput" min="1" placeholder="상품 ID">
-                                    <button type="button" id="quoteProductIdChangeButton" class="chat-btn">변경</button>
-                                </div>
+                            <div class="chat-quote-card-head">
+                                <h3>1차 협상 견적</h3>
+                                <span class="chat-negotiation-status" id="negotiationStatusBadge" hidden></span>
                             </div>
+
+                            <div id="negotiationEmpty" class="chat-quote-empty">
+                                <p>아직 협상 견적서가 없습니다.</p>
+                                <button type="button" id="negotiationStartButton" class="chat-btn chat-btn-primary">
+                                    협상 견적서 시작하기
+                                </button>
+                            </div>
+
+                            <form id="negotiationForm" class="chat-quote-form" hidden>
+                                <div class="chat-quote-field">
+                                    <label for="negoQuantity">수량</label>
+                                    <input type="number" id="negoQuantity" min="1" required>
+                                </div>
+                                <div class="chat-quote-field">
+                                    <label for="negoUnitPrice">1인 단가</label>
+                                    <input type="number" id="negoUnitPrice" min="0" required>
+                                </div>
+                                <div class="chat-quote-field">
+                                    <label for="negoDeliveryFee">배송비</label>
+                                    <input type="number" id="negoDeliveryFee" min="0">
+                                </div>
+
+                                <div class="chat-quote-total">
+                                    <span>합계</span>
+                                    <strong id="negoTotalAmount">0원</strong>
+                                </div>
+
+                                <p class="chat-quote-notes" id="negoAdditionalNotes" hidden></p>
+
+                                <div class="chat-quote-actions">
+                                    <button type="submit" id="negotiationSaveButton" class="chat-btn">
+                                        수정 내용 저장
+                                    </button>
+                                    <button type="button" id="negotiationAiButton" class="chat-btn chat-btn-ghost">
+                                        AI 요약 실행
+                                    </button>
+                                    <button type="button" id="negotiationLockButton" class="chat-btn chat-btn-primary">
+                                        최종 확정(잠금)
+                                    </button>
+                                </div>
+
+                                <p class="chat-quote-hint" id="negotiationHint"></p>
+                            </form>
                         </section>
 
                         <!-- 공식 견적서 -->
@@ -160,30 +184,6 @@
 
                             <form id="quoteComposeForm" class="chat-quote-form" hidden>
                                 <div class="chat-quote-field">
-                                    <label for="quoteItemName">상품명</label>
-                                    <input type="text" id="quoteItemName" placeholder="예: 한우 도시락">
-                                </div>
-
-                                <div class="chat-quote-field">
-                                    <label for="quoteEventDateTime">행사/이용 일시</label>
-                                    <input type="datetime-local" id="quoteEventDateTime">
-                                </div>
-
-                                <div class="chat-quote-field">
-                                    <label for="quoteBudgetType">예산 유형</label>
-                                    <select id="quoteBudgetType">
-                                        <option value="">선택 안 함</option>
-                                        <option value="PER_PERSON">1인당 예산</option>
-                                        <option value="TOTAL">총 예산</option>
-                                    </select>
-                                </div>
-
-                                <div class="chat-quote-field">
-                                    <label for="quoteBudget">예산</label>
-                                    <input type="number" id="quoteBudget" min="0" step="0.01" placeholder="예: 50000">
-                                </div>
-
-                                <div class="chat-quote-field">
                                     <label for="quoteQuantity">수량</label>
                                     <input type="number" id="quoteQuantity" min="1" required>
                                 </div>
@@ -191,17 +191,10 @@
                                     <label for="quoteUnitPrice">1인 단가</label>
                                     <input type="number" id="quoteUnitPrice" min="1" required>
                                 </div>
-
                                 <div class="chat-quote-field">
-                                    <label for="quoteDeliveryAddress">배송(행사) 주소</label>
-                                    <input type="text" id="quoteDeliveryAddress" placeholder="예: 서울특별시 강남구 테헤란로 152">
+                                    <label for="quoteDeliveryFee">배송비</label>
+                                    <input type="number" id="quoteDeliveryFee" min="0">
                                 </div>
-
-                                <div class="chat-quote-field">
-                                    <label for="quoteDescription">상세 설명</label>
-                                    <textarea id="quoteDescription" placeholder="배송비 등 항목으로 표현하기 어려운 내용은 여기에 적어주세요."></textarea>
-                                </div>
-
                                 <div class="chat-quote-actions">
                                     <button type="submit" class="chat-btn chat-btn-primary">보내기</button>
                                     <button type="button" id="quoteComposeCancel" class="chat-btn chat-btn-ghost">취소</button>
@@ -217,12 +210,14 @@
                                     <span>1인 단가</span>
                                     <strong id="quoteDetailUnitPrice"></strong>
                                 </div>
+                                <div class="chat-quote-detail-row">
+                                    <span>배송비</span>
+                                    <strong id="quoteDetailDeliveryFee"></strong>
+                                </div>
                                 <div class="chat-quote-detail-row chat-quote-detail-total">
                                     <span>합계</span>
                                     <strong id="quoteDetailTotal"></strong>
                                 </div>
-
-                                <p class="chat-quote-notes" id="quoteDetailNotes" hidden></p>
 
                                 <div class="chat-quote-actions" id="quoteActionArea"></div>
                             </div>
