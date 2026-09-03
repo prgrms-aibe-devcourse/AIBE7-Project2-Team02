@@ -102,7 +102,7 @@ public class QuoteNegotiation {
 		this.sellerId = sellerId;
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = Quote.calculateTotalAmount(quantity, unitPrice, deliveryFee); // 기존 Quote 계산 로직 재사용
 		this.status = NegotiationStatus.NEGOTIATING;
 	}
@@ -130,7 +130,7 @@ public class QuoteNegotiation {
 		}
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = Quote.calculateTotalAmount(quantity, unitPrice, deliveryFee);
 		this.additionalNotes = additionalNotes;
 	}
@@ -171,7 +171,7 @@ public class QuoteNegotiation {
 	public void applyEdit(Integer quantity, Long unitPrice, Long deliveryFee) {
 		this.quantity = quantity;
 		this.unitPrice = unitPrice;
-		this.deliveryFee = deliveryFee;
+		this.deliveryFee = (deliveryFee != null) ? deliveryFee : 0L;
 		this.totalAmount = Quote.calculateTotalAmount(quantity, unitPrice, deliveryFee);
 	}
 
