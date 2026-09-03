@@ -1,5 +1,6 @@
 package org.example.matcheat.config;
 
+import org.example.matcheat.domain.quote.exception.AiSummaryFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -40,5 +41,10 @@ public class TradeApiExceptionHandler {
         return ResponseEntity.status(status).body(Map.of(
                 "code", status.name(),
                 "message", message == null ? status.getReasonPhrase() : message));
+    }
+
+    @ExceptionHandler(AiSummaryFailedException.class)
+    ResponseEntity<Map<String, String>> handleAiSummaryFailed(AiSummaryFailedException exception) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage());
     }
 }

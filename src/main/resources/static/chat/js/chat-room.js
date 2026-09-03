@@ -572,10 +572,19 @@ function fillFormFromNegotiation(n) {
     el('quoteQuantity').value = n.quantity ?? '';
     el('quoteComposeTotalAmount').textContent = n.totalAmount != null ? won(n.totalAmount) : '0원';
 
+    const meta = decodeNotes(n.additionalNotes);
+    el('quoteEventDateTime').value = meta.eventDateTime || '';
+    el('quoteBudgetType').value = meta.budgetType || '';
+    el('quoteBudget').value = meta.budget || '';
+    el('quoteDeliveryAddress').value = meta.deliveryAddress || '';
+    el('quoteDescription').value = meta.description || '';
+    updateBudgetLabel();
+    updateComposeTotalPreview();
+
     const notesEl = el('quoteDetailNotes');
-    if (n.additionalNotes) {
+    if (meta.summary) {
         notesEl.hidden = false;
-        notesEl.textContent = n.additionalNotes;
+        notesEl.textContent = `AI 요약: ${meta.summary}`;
     } else {
         notesEl.hidden = true;
     }
@@ -627,19 +636,13 @@ function collectNegotiationEditPayload() {
     const description = el('quoteDescription').value.trim();
 
     const unitPrice = computeUnitPriceFromBudget(budget, budgetType, quantity);
-
-    const notesParts = [];
-    if (eventDateTime) notesParts.push(`행사/이용 일시: ${eventDateTime}`);
-    if (budgetType) notesParts.push(`예산 유형: ${budgetType === 'PER_PERSON' ? '1인당' : '총액'}`);
-    if (budget) notesParts.push(`예산: ${won(budget)}`);
-    if (deliveryAddress) notesParts.push(`배송(행사) 주소: ${deliveryAddress}`);
-    if (description) notesParts.push(`상세 설명: ${description}`);
+    const existingSummary = decodeNotes(state.negotiation?.additionalNotes).summary;
 
     return {
         quantity,
         unitPrice,
         deliveryFee: state.negotiation?.deliveryFee ?? null,
-        additionalNotes: notesParts.length ? notesParts.join('\n') : null,
+        additionalNotes: encodeNotes({ eventDateTime, budgetType, budget, deliveryAddress, description }, existingSummary),
     };
 }
 
@@ -735,6 +738,54 @@ async function withdrawQuote() {
     }
 }
 
+// [추가] additionalNotes 패킹 포맷 — 백엔드 QuoteNegotiationNotesCodec와 반드시 1:1 동일해야 함.
+// QuoteNegotiation에 전용 컬럼이 생기면(estimate 필드 마이그레이션) 이 두 함수는 통째로 삭제 대상.
+const META_OPEN = '[MATCHEAT_META]';
+const META_CLOSE = '[/MATCHEAT_META]';
+const SUMMARY_OPEN = '[AI_SUMMARY]';
+const SUMMARY_CLOSE = '[/AI_SUMMARY]';
+
+function encodeNotes({ eventDateTime, budgetType, budget, deliveryAddress, description }, existingSummary) {
+    const lines = [];
+    const push = (key, value) => {
+        if (value === undefined || value === null || value === '') return;
+        lines.push(`${key}=${String(value).replace(/\n/g, '\\n')}`);
+    };
+    push('eventDateTime', eventDateTime);
+    push('budgetType', budgetType);
+    push('budget', budget);
+    push('deliveryAddress', deliveryAddress);
+    push('description', description);
+
+    return [META_OPEN, ...lines, META_CLOSE, SUMMARY_OPEN, existingSummary || '', SUMMARY_CLOSE].join('\n');
+}
+
+function decodeNotes(raw) {
+    const empty = { eventDateTime: '', budgetType: '', budget: '', deliveryAddress: '', description: '', summary: '' };
+    if (!raw) return empty;
+
+    const metaMatch = raw.match(/\[MATCHEAT_META\]\n([\s\S]*?)\n\[\/MATCHEAT_META\]/);
+    const summaryMatch = raw.match(/\[AI_SUMMARY\]\n([\s\S]*?)\n\[\/AI_SUMMARY\]/);
+
+    if (!metaMatch && !summaryMatch) {
+        // 이전 포맷(순수 자유 텍스트) 호환 — 통째로 요약칸에 보여준다.
+        return { ...empty, summary: raw };
+    }
+
+    const result = { ...empty };
+    if (metaMatch) {
+        metaMatch[1].split('\n').filter(Boolean).forEach((line) => {
+            const idx = line.indexOf('=');
+            if (idx === -1) return;
+            const key = line.slice(0, idx);
+            const value = line.slice(idx + 1).replace(/\\n/g, '\n');
+            if (key in result) result[key] = value;
+        });
+    }
+    if (summaryMatch) result.summary = summaryMatch[1];
+    return result;
+}
+
 // ------------------------------------------------------------------
 // 이벤트 바인딩
 // ------------------------------------------------------------------
@@ -812,7 +863,9 @@ async function createNewChatRoom(event) {
     }
 
     try {
-        const room = await api('/chat-rooms', {method: 'POST', body: JSON.stringify(body)});
+        const room = await api('/chat-rooms', { method: 'POST', body: JSON.stringify(body) });
+
+        // 이 방이 어떤 상품에서 시작됐는지 캐싱해서, 2.2 미리보기가 새로고침 후에도 뜨게 한다.
 
         el('newChatForm').hidden = true;
         el('newChatForm').reset();
