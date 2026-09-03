@@ -1,0 +1,5 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS manual_suspension BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS manual_suspension_reason VARCHAR(500);
