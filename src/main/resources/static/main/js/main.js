@@ -671,6 +671,27 @@ function createProductCard(product) {
     content.append(title, meta, rating);
     card.append(imageArea, content);
 
+// 상품 카드 전체를 클릭하면 상세 페이지로 이동한다.
+    if (product.id != null) {
+        const detailUrl =
+            `/product/detail?id=${encodeURIComponent(product.id)}`;
+
+        card.style.cursor = 'pointer';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'link');
+
+        card.addEventListener('click', () => {
+            window.location.href = detailUrl;
+        });
+
+        card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                window.location.href = detailUrl;
+            }
+        });
+    }
+
     return card;
 }
 
