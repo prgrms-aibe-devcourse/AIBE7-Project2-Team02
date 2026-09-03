@@ -72,6 +72,40 @@ async function isOwnedProduct(productId) {
     }
 }
 
+/**
+ * 현재 상품을 기준으로 진행 중인 채팅방이 이미 있는지 확인한다.
+ */
+async function hasActiveProductChat(productId) {
+    if (readCurrentUserId() === null) {
+        return false;
+    }
+
+    try {
+        const response =
+            await authFetch(
+                '/api/v1/chat-rooms'
+            );
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const rooms =
+            await readApiBody(response);
+
+        return Array.isArray(rooms)
+            && rooms.some(room =>
+                Number(room.productId)
+                === Number(productId)
+                && room.originType === 'INQUIRY'
+                && room.status === 'ACTIVE'
+            );
+
+    } catch {
+        return false;
+    }
+}
+
 // [추가] "바로 채팅하기" 클릭 핸들러
 async function startChatWithSeller(productId) {
     if (readCurrentUserId() === null) {
@@ -165,11 +199,30 @@ async function loadDetail() {
         const owned = await isOwnedProduct(product.id);
 
         if (owned) {
-            editButton.href = `/product/update?id=${product.id}`;
+            editButton.href =
+                `/product/update?id=${product.id}`;
+
             editButton.style.display = '';
-            chatButton.style.display = 'none'; // [추가] 본인 상품과는 채팅할 수 없음
+            chatButton.style.display = 'none';
+
         } else {
-            chatButton.addEventListener('click', () => startChatWithSeller(product.id)); // [추가]
+            const hasChat =
+                await hasActiveProductChat(
+                    product.id
+                );
+
+            chatButton.textContent =
+                hasChat
+                    ? '💬 채팅 이어가기'
+                    : '💬 바로 채팅하기';
+
+            chatButton.addEventListener(
+                'click',
+                () =>
+                    startChatWithSeller(
+                        product.id
+                    )
+            );
         }
 
         statusBox.style.display = 'none';

@@ -25,12 +25,7 @@
  * 인증/토큰은 팀 공통 모듈(account/js/auth-client.js)을 그대로 쓴다.
  */
 
-import {
-    authFetch,
-    readAccessToken,
-    readApiBody,
-    readCurrentUserId,
-} from '../../account/js/auth-client.js';
+import {authFetch, readAccessToken, readApiBody, readCurrentUserId,} from '../../account/js/auth-client.js';
 
 const CONFIG = {
     API_BASE: '/api/v1',
@@ -62,7 +57,7 @@ async function api(path, options = {}) {
     const response = await authFetch(CONFIG.API_BASE + path, {
         ...options,
         headers: {
-            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+            ...(isFormData ? {} : {'Content-Type': 'application/json'}),
             ...(options.headers || {}),
         },
     });
@@ -130,6 +125,7 @@ function el(id) {
 }
 
 let toastTimer = null;
+
 function showToast(message, isError = false) {
     const toast = el('chatToast');
     toast.textContent = message;
@@ -163,10 +159,16 @@ const state = {
 // ------------------------------------------------------------------
 
 function partnerLabel(room) {
-    const iAmBuyer = currentUserId === room.buyerId;
-    const role = iAmBuyer ? '판매자' : '구매자';
-    const id = iAmBuyer ? room.sellerId : room.buyerId;
-    return `${role} #${id}`;
+    const iAmBuyer =
+        currentUserId === room.buyerId;
+
+    if (iAmBuyer) {
+        return room.sellerName
+            || `판매자 #${room.sellerId}`;
+    }
+
+    return room.buyerName
+        || `구매자 #${room.buyerId}`;
 }
 
 function originLabel(originType) {
@@ -439,7 +441,7 @@ function connectWebSocket() {
     const socket = new SockJS(CONFIG.WS_ENDPOINT);
     const client = new StompJs.Client({
         webSocketFactory: () => socket,
-        connectHeaders: { Authorization: `Bearer ${readAccessToken()}` },
+        connectHeaders: {Authorization: `Bearer ${readAccessToken()}`},
         reconnectDelay: 4000,
         onConnect: () => {
             state.wsConnected = true;
@@ -467,6 +469,7 @@ function subscribeRoom(roomId) {
         appendMessage(message, true);
     });
 }
+
 //
 //
 //
@@ -519,7 +522,7 @@ async function onProductSelectChange(event) {
     try {
         const updated = await api(`/chat-rooms/${state.selectedRoomId}/product`, {
             method: 'PATCH',
-            body: JSON.stringify({ productId: newProductId }),
+            body: JSON.stringify({productId: newProductId}),
         });
         state.selectedRoom = updated;
         showToast('연결된 상품을 변경했습니다.');
@@ -617,7 +620,9 @@ function renderQuoteCard() {
     const readOnly = n.status === 'LOCKED';
     ['quoteQuantity', 'quoteEventDateTime', 'quoteBudgetType',
         'quoteBudget', 'quoteDeliveryAddress', 'quoteDescription', 'quoteProductId']
-        .forEach((id) => { el(id).disabled = readOnly; });
+        .forEach((id) => {
+            el(id).disabled = readOnly;
+        });
 
     renderQuoteActions(n);
 }
@@ -676,7 +681,7 @@ async function saveNegotiationEdit() {
         : `/chat-rooms/${state.selectedRoomId}/quote-negotiations`;
 
     try {
-        state.negotiation = await api(path, { method: 'PUT', body: JSON.stringify(collectNegotiationEditPayload()) });
+        state.negotiation = await api(path, {method: 'PUT', body: JSON.stringify(collectNegotiationEditPayload())});
         renderQuoteCard();
         showToast('견적을 수정했습니다.');
     } catch (e) {
@@ -687,7 +692,7 @@ async function saveNegotiationEdit() {
 async function runAiSummary() {
     if (!confirm('AI 요약은 채팅방당 1회만 가능하고, 실제 AI 호출 비용이 발생합니다. 계속할까요?')) return;
     try {
-        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/ai-summary`, { method: 'POST' });
+        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/ai-summary`, {method: 'POST'});
         renderQuoteCard();
         showToast('AI 요약이 완료됐습니다. 필요하면 마지막으로 한 번 더 수정할 수 있어요.');
     } catch (e) {
@@ -698,7 +703,7 @@ async function runAiSummary() {
 async function finalizeNegotiation() {
     if (!confirm('최종결정하면 더 이상 수정할 수 없습니다. 계속할까요?')) return;
     try {
-        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/lock`, { method: 'POST' });
+        state.negotiation = await api(`/chat-rooms/${state.selectedRoomId}/quote-negotiations/lock`, {method: 'POST'});
         if (state.negotiation.resultingQuoteId) {
             state.quote = await api(`/quotes/${state.negotiation.resultingQuoteId}`);
         }
@@ -711,7 +716,7 @@ async function finalizeNegotiation() {
 
 async function payForQuote() {
     try {
-        await api(`/quotes/${state.quote.quoteId}/payments`, { method: 'POST' });
+        await api(`/quotes/${state.quote.quoteId}/payments`, {method: 'POST'});
         showToast('결제를 완료했습니다.');
     } catch (e) {
         showToast(e.message || '결제에 실패했습니다.', true);
@@ -724,7 +729,7 @@ async function withdrawQuote() {
     try {
         await api(`/quotes/${state.quote.quoteId}/status`, {
             method: 'PATCH',
-            body: JSON.stringify({ status: 'WITHDRAWN' }),
+            body: JSON.stringify({status: 'WITHDRAWN'}),
         });
         showToast('견적을 철회했습니다.');
         await loadNegotiation(state.selectedRoomId);
