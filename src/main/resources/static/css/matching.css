@@ -1,120 +1,224 @@
-/* 맞춤 상품 매칭 결과 페이지 전체 영역 */
+/* 상품 매칭 결과 화면 */
+
 .matching-page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 40px 24px 64px;
+    padding-top: 48px;
 }
 
-/* 페이지 제목과 주문 상세 이동 영역 */
+
+/* 페이지 상단 */
+
 .matching-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 24px;
 
     margin-bottom: 24px;
 }
 
-.matching-header h1 {
+.matching-kicker {
     margin: 0 0 8px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    color: var(--color-primary, #E85D3F);
 }
 
-.matching-header p {
+.matching-header h1 {
     margin: 0;
-    color: #666;
+
+    font-size: 30px;
+    line-height: 1.35;
+    letter-spacing: -0.035em;
+
+    color: var(--color-text-primary, #1F2937);
+}
+
+.matching-header > div > p:last-child {
+    margin: 8px 0 0;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    color: var(--color-text-secondary, #6B7280);
 }
 
 .matching-back-link {
     flex-shrink: 0;
 
-    padding: 9px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    min-height: 40px;
+    padding: 0 14px;
 
-    color: #222;
-    text-decoration: none;
-    font-size: 14px;
+    border: 1px solid var(--color-border-strong, #CFC1BA);
+    border-radius: 8px;
+
+    background-color: var(--color-surface, #FFFFFF);
+    color: var(--color-text-primary, #1F2937);
+
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .matching-back-link:hover {
-    background-color: #f5f5f5;
+    border-color: var(--color-primary, #E85D3F);
+
+    background-color: var(--color-primary-soft, #FFF2ED);
+    color: var(--color-primary, #E85D3F);
 }
 
-/* 매칭에 사용된 주문 조건 */
+
+/* 매칭 기준 주문 */
+
 .matching-summary {
+    margin-bottom: 24px;
+    padding: 20px 22px;
+
+    border: 1px solid var(--color-border, #E8DDD8);
+    border-radius: 10px;
+
+    background-color: var(--color-surface, #FFFFFF);
+}
+
+.matching-summary-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+
+    border-bottom: 1px solid var(--color-border, #E8DDD8);
+}
+
+.matching-summary-title strong {
+    font-size: 15px;
+
+    color: var(--color-text-primary, #1F2937);
+}
+
+.matching-summary-title span {
+    font-size: 12px;
+
+    color: var(--color-text-secondary, #6B7280);
+}
+
+.matching-summary-grid {
     display: grid;
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
-
-    margin-bottom: 28px;
-    padding: 20px 24px;
-
-    border: 1px solid #ddd;
-    border-radius: 8px;
-
-    background-color: #f7f7f7;
 }
 
 .matching-summary-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    min-width: 0;
 }
 
-.matching-summary-item > span {
-    color: #777;
+.matching-summary-item > span,
+.matching-summary-address > span {
+    display: block;
+
+    margin-bottom: 5px;
+
     font-size: 12px;
+
+    color: var(--color-text-secondary, #6B7280);
 }
 
-.matching-summary-item strong {
+.matching-summary-item strong,
+.matching-summary-address strong {
     font-size: 14px;
+    line-height: 1.55;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
 .matching-summary-address {
-    grid-column: span 2;
+    margin-top: 18px;
+    padding-top: 16px;
+
+    border-top: 1px solid var(--color-border, #E8DDD8);
 }
 
-.matching-sort-label {
-    color: #0b8f64;
-}
 
-/* 조회 중, 오류 안내 */
+/* 로딩 / 오류 */
+
 .matching-message {
-    padding: 40px;
+    padding: 40px 24px;
 
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--color-border, #E8DDD8);
+    border-radius: 10px;
 
-    background-color: #fff;
+    background-color: var(--color-surface, #FFFFFF);
 
     text-align: center;
-    color: #666;
+
+    color: var(--color-text-secondary, #6B7280);
 }
 
 .matching-error {
-    color: #b42318;
+    border-color: #FECACA;
+
+    background-color: var(--color-danger-soft, #FEF2F2);
+    color: var(--color-danger, #DC2626);
 }
 
-/* 매칭 결과 카드 목록 */
+
+/* 결과 상단 */
+
+.matching-result-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    margin: 0 2px 12px;
+
+    font-size: 13px;
+}
+
+.matching-result-meta strong {
+    color: var(--color-text-primary, #1F2937);
+}
+
+.matching-result-meta span {
+    color: var(--color-text-secondary, #6B7280);
+}
+
+
+/* 매칭 결과 목록 */
+
 .matching-results {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .matching-card {
-    display: flex;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 22px;
 
     padding: 20px;
 
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border, #E8DDD8);
     border-radius: 10px;
 
-    background-color: #fff;
+    background-color: var(--color-surface, #FFFFFF);
+
+    transition: border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.matching-card:hover {
+    border-color: var(--color-border-strong, #CFC1BA);
+    box-shadow: var(
+            --shadow-subtle,
+            0 4px 20px rgba(31, 41, 55, 0.04)
+    );
 }
 
 .matching-product-image {
@@ -122,19 +226,19 @@
     align-items: center;
     justify-content: center;
 
-    flex: 0 0 140px;
-    width: 140px;
-    height: 140px;
+    width: 160px;
+    height: 160px;
 
     overflow: hidden;
 
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border, #E8DDD8);
     border-radius: 8px;
 
-    background-color: #f3f3f3;
+    background-color: var(--color-surface-subtle, #FAF7F5);
 
-    color: #777;
-    font-size: 36px;
+    color: var(--color-text-disabled, #9CA3AF);
+
+    font-size: 32px;
     font-weight: 700;
 }
 
@@ -147,59 +251,74 @@
 
 .matching-card-content {
     display: flex;
-    flex: 1;
     flex-direction: column;
-    gap: 12px;
+    gap: 11px;
 
     min-width: 0;
 }
 
 .matching-card-heading {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 16px;
 }
 
 .matching-card-heading h2 {
-    margin: 4px 0 0;
+    margin: 3px 0 0;
 
     font-size: 18px;
+    line-height: 1.4;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
 .matching-rank {
-    color: #777;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
+
+    color: var(--color-primary, #E85D3F);
 }
 
 .matching-score {
     flex-shrink: 0;
 
-    padding: 6px 10px;
+    padding: 5px 9px;
 
     border-radius: 6px;
 
-    background-color: #e8f7f1;
-    color: #087a55;
+    background-color: var(--color-positive-soft, #EEF8F2);
+    color: var(--color-positive, #2F855A);
 
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.3;
 }
+
+
+/* 상품 정보 */
 
 .matching-product-meta {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 6px 14px;
 
+    font-size: 13px;
+}
+
+.matching-product-meta strong {
     font-size: 14px;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
 .matching-product-meta span {
-    color: #666;
+    color: var(--color-text-secondary, #6B7280);
 }
 
-/* 총점을 시각적으로 보여주는 막대 */
+
+/* 매칭 점수 */
+
 .matching-score-bar {
     width: 100%;
     height: 6px;
@@ -208,7 +327,7 @@
 
     border-radius: 999px;
 
-    background-color: #e5e5e5;
+    background-color: #E5E7EB;
 }
 
 .matching-score-fill {
@@ -216,15 +335,18 @@
 
     border-radius: inherit;
 
-    background-color: #10b981;
+    background-color: var(--color-positive, #2F855A);
 }
 
 .matching-score-detail {
-    color: #777;
     font-size: 12px;
+
+    color: var(--color-text-secondary, #6B7280);
 }
 
-/* 매칭 이유 태그 */
+
+/* 매칭 근거 */
+
 .matching-tags {
     display: flex;
     flex-wrap: wrap;
@@ -232,25 +354,64 @@
 }
 
 .matching-tag {
+    display: inline-flex;
+    align-items: center;
+
     padding: 4px 7px;
 
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border, #E8DDD8);
     border-radius: 5px;
 
-    background-color: #fafafa;
+    background-color: var(--color-surface-subtle, #FAF7F5);
+    color: var(--color-text-secondary, #6B7280);
 
-    color: #555;
     font-size: 12px;
 }
 
-/* 매칭되는 상품이 없는 경우 */
+
+/* 카드 하단 */
+
+.matching-card-footer {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: auto;
+    padding-top: 2px;
+}
+
+.matching-product-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 38px;
+    padding: 0 14px;
+
+    border: 1px solid var(--color-primary, #E85D3F);
+    border-radius: 8px;
+
+    background-color: var(--color-primary, #E85D3F);
+    color: #FFFFFF;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.matching-product-link:hover {
+    border-color: var(--color-primary-hover, #C94A30);
+    background-color: var(--color-primary-hover, #C94A30);
+}
+
+
+/* 매칭 결과 없음 */
+
 .matching-empty {
     padding: 48px 24px;
 
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px dashed var(--color-border-strong, #CFC1BA);
+    border-radius: 10px;
 
-    background-color: #fff;
+    background-color: var(--color-surface-subtle, #FAF7F5);
 
     text-align: center;
 }
@@ -260,51 +421,94 @@
 
     margin-bottom: 8px;
 
-    font-size: 18px;
+    font-size: 17px;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
 .matching-empty p {
-    margin: 0 0 20px;
+    margin: 0 0 18px;
 
-    color: #666;
+    font-size: 13px;
+
+    color: var(--color-text-secondary, #6B7280);
 }
 
 .matching-empty a {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-    padding: 10px 16px;
+    min-height: 40px;
+    padding: 0 14px;
 
-    border-radius: 6px;
+    border: 1px solid var(--color-primary, #E85D3F);
+    border-radius: 8px;
 
-    background-color: #222;
-    color: #fff;
+    background-color: var(--color-primary, #E85D3F);
+    color: #FFFFFF;
 
-    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-/* 작은 화면에서는 카드와 주문 요약을 세로로 정리한다. */
-@media (max-width: 800px) {
-    .matching-summary {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+.matching-empty a:hover {
+    border-color: var(--color-primary-hover, #C94A30);
+    background-color: var(--color-primary-hover, #C94A30);
+}
+
+
+/* 반응형 */
+
+@media (max-width: 900px) {
+
+    .matching-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+
+    .matching-page {
+        padding-top: 32px;
     }
 
-    .matching-summary-address {
-        grid-column: 1 / -1;
+    .matching-header {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .matching-summary-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .matching-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
     }
 
     .matching-card {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 
     .matching-product-image {
         width: 100%;
-        height: 180px;
+        height: 220px;
     }
 
-    .matching-product-meta {
+    .matching-result-meta {
         align-items: flex-start;
         flex-direction: column;
-        gap: 6px;
+        gap: 3px;
+    }
+
+    .matching-card-footer {
+        justify-content: stretch;
+    }
+
+    .matching-product-link {
+        width: 100%;
     }
 }

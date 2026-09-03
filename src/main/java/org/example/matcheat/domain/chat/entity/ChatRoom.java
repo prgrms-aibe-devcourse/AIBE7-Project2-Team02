@@ -13,7 +13,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chat_rooms")
+@Table(name = "chat_rooms", indexes = {
+		@Index(name = "idx_chat_room_buyer_status_created", columnList = "buyer_id,status,created_at"),
+		@Index(name = "idx_chat_room_seller_status_created", columnList = "seller_id,status,created_at")
+})
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

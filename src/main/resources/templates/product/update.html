@@ -5,134 +5,339 @@
     <title>판매 조건 수정 | MatchEAT</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/product.css}">
+    <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main>
+<main class="product-create-page product-update-page">
     <section class="product-form-header">
-        <h1>판매 조건 수정</h1>
-        <p>본인이 등록한 판매 조건만 수정할 수 있습니다.</p>
+        <div>
+            <p class="product-form-kicker">판매자 상품 관리</p>
+            <h1>상품 수정</h1>
+            <p>등록한 상품과 판매 조건을 수정합니다.</p>
+        </div>
+
+        <div class="product-form-header-actions">
+            <a
+                    id="detailBackLink"
+                    href="#"
+                    class="product-form-back"
+                    style="display:none;"
+            >
+                상품 상세로 돌아가기
+            </a>
+
+            <a th:href="@{/product}" class="product-form-back">
+                상품 목록
+            </a>
+        </div>
     </section>
 
-    <div class="product-toolbar">
-        <a th:href="@{/product}">📋 판매 조건 목록</a>
-        <a th:href="@{/product/new}">➕ 판매 조건 등록</a>
-        <a id="detailBackLink" href="#" style="display:none;">🔎 상세 페이지로 돌아가기</a>
-    </div>
+    <form
+            id="productUpdateForm"
+            class="product-create-layout"
+    >
+        <input type="hidden" id="productId">
 
-    <div class="product-form-lookup">
-        <label for="searchId">수정할 판매 조건 ID</label>
-        <input type="number" id="searchId" placeholder="예: 1">
-        <button type="button" id="searchBtn" class="button">데이터 불러오기</button>
-    </div>
+        <div class="product-create-main">
 
-    <form id="productUpdateForm" class="product-form-card">
+            <section class="product-form-section">
+                <div class="product-form-section-header">
+                    <span>1</span>
 
-        <div class="product-form-row">
-            <div class="product-form-field">
-                <label for="productName">상품/메뉴명</label>
-                <input type="text" id="productName" required disabled>
-            </div>
+                    <div>
+                        <h2>기본 정보 수정</h2>
+                        <p>
+                            상품의 이름, 카테고리와 기본 판매 정보를 수정합니다.
+                        </p>
+                    </div>
+                </div>
 
-            <div class="product-form-field">
-                <label for="productId">판매 조건 ID</label>
-                <input type="text" id="productId" readonly>
-            </div>
+                <div class="product-form-full">
+                    <label for="productName">
+                        상품명 <em>*</em>
+                    </label>
+
+                    <input
+                            type="text"
+                            id="productName"
+                            required
+                            disabled
+                    >
+                </div>
+
+                <div class="product-form-row">
+                    <div class="product-form-field">
+                        <label for="category">
+                            카테고리 <em>*</em>
+                        </label>
+
+                        <select
+                                id="category"
+                                required
+                                disabled
+                        >
+                            <option value="" disabled>
+                                카테고리를 선택하세요
+                            </option>
+                            <option value="한식">한식</option>
+                            <option value="중식">중식</option>
+                            <option value="일식">일식</option>
+                            <option value="양식">양식</option>
+                            <option value="도시락/간편식">도시락/간편식</option>
+                            <option value="디저트/다과">디저트/다과</option>
+                            <option value="카페/음료">카페/음료</option>
+                            <option value="비건">비건</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+
+                    <div class="product-form-field">
+                        <label for="servingPrice">
+                            가격 (원/인분) <em>*</em>
+                        </label>
+
+                        <input
+                                type="number"
+                                id="servingPrice"
+                                min="1"
+                                required
+                                disabled
+                        >
+                    </div>
+                </div>
+
+                <div class="product-form-full">
+                    <label for="description">
+                        상품 설명
+                    </label>
+
+                    <textarea
+                            id="description"
+                            rows="5"
+                            disabled
+                    ></textarea>
+                </div>
+            </section>
+
+            <section class="product-form-section">
+                <div class="product-form-section-header">
+                    <span>2</span>
+
+                    <div>
+                        <h2>배송 및 상품 이미지</h2>
+                        <p>
+                            배송 기준 위치와 대표 이미지를 수정합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="product-form-row">
+
+                    <div class="product-form-field">
+                        <label for="storeAddress">
+                            가게 주소 <em>*</em>
+                        </label>
+
+                        <div class="product-address-field">
+                            <input
+                                    type="text"
+                                    id="storeAddress"
+                                    autocomplete="street-address"
+                                    required
+                                    readonly
+                                    disabled
+                            >
+
+                            <button
+                                    type="button"
+                                    id="storeAddressSearchButton"
+                                    class="product-address-search"
+                                    disabled
+                            >
+                                주소 재검색
+                            </button>
+                        </div>
+
+                        <div class="product-form-hint">
+                            주소를 변경하면 위치 정보가 다시 계산됩니다.
+                        </div>
+                    </div>
+
+                    <div class="product-form-field">
+                        <label for="storeAddressDetail">
+                            상세 주소 <em>*</em>
+                        </label>
+
+                        <input
+                                type="text"
+                                id="storeAddressDetail"
+                                maxlength="255"
+                                autocomplete="address-line2"
+                                placeholder="예: 상가동 102호 / 3층 조리실"
+                                required
+                                disabled
+                        >
+
+                        <div class="product-form-hint">
+                            실제 가게 위치를 상세하게 입력해주세요.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="product-form-full">
+                    <label for="deliveryRadiusKm">
+                        배송 가능 거리 (km) <em>*</em>
+                    </label>
+
+                    <input
+                            type="number"
+                            step="any"
+                            id="deliveryRadiusKm"
+                            min="0"
+                            required
+                            disabled
+                    >
+                </div>
+
+                <div class="product-form-full">
+                    <label for="imageFile">
+                        대표 이미지
+                    </label>
+
+                    <div class="product-update-image-area">
+                        <img
+                                id="imagePreview"
+                                class="product-image-preview"
+                                alt="현재 상품 이미지"
+                        >
+
+                        <div>
+                            <strong>대표 이미지 변경</strong>
+                            <p>
+                                새 이미지를 선택하면 기존 이미지가 교체됩니다.
+                            </p>
+
+                            <input
+                                    type="file"
+                                    id="imageFile"
+                                    accept="image/*"
+                                    disabled
+                            >
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="product-form-row">
-            <div class="product-form-field">
-                <label for="minHeadcount">최소 수주 수량</label>
-                <input type="number" id="minHeadcount" min="1" required disabled>
-            </div>
+        <aside class="product-create-side">
+            <section class="product-form-section product-form-section-side">
+                <div class="product-form-section-header">
+                    <span>3</span>
 
-            <div class="product-form-field">
-                <label for="maxHeadcount">최대 수주 수량</label>
-                <input type="number" id="maxHeadcount" min="1" required disabled>
-            </div>
-        </div>
+                    <div>
+                        <h2>주문 제한 및 일정 설정</h2>
+                        <p>
+                            주문 가능 수량과 휴무 일정을 수정합니다.
+                        </p>
+                    </div>
+                </div>
 
-        <div class="product-form-row">
-            <div class="product-form-field">
-                <label for="servingPrice">1인분 가격</label>
-                <input type="number" id="servingPrice" min="1" required disabled>
-            </div>
+                <div class="product-form-row">
+                    <div class="product-form-field">
+                        <label for="minHeadcount">
+                            최소 주문수량 <em>*</em>
+                        </label>
 
-            <div class="product-form-field">
-                <label for="deliveryRadiusKm">배송 가능 반경(km)</label>
-                <input type="number" step="any" id="deliveryRadiusKm" min="0" required disabled>
-            </div>
-        </div>
+                        <input
+                                type="number"
+                                id="minHeadcount"
+                                min="1"
+                                required
+                                disabled
+                        >
+                    </div>
 
-        <div class="product-form-full">
-            <label for="storeAddress">가게 주소</label>
-            <input type="text" id="storeAddress" required disabled>
-            <div class="product-form-hint">주소를 바꾸면 위경도가 다시 계산됩니다.</div>
-        </div>
+                    <div class="product-form-field">
+                        <label for="maxHeadcount">
+                            최대 주문수량 <em>*</em>
+                        </label>
 
-        <div class="product-form-row">
-            <div class="product-form-field">
-                <label for="category">음식 카테고리</label>
-                <select id="category" required disabled>
-                    <option value="" disabled>선택하세요</option>
-                    <option value="한식">한식</option>
-                    <option value="중식">중식</option>
-                    <option value="일식">일식</option>
-                    <option value="양식">양식</option>
-                    <option value="도시락/간편식">도시락/간편식</option>
-                    <option value="디저트/다과">디저트/다과</option>
-                    <option value="카페/음료">카페/음료</option>
-                    <option value="비건">비건</option>
-                    <option value="기타">기타</option>
-                </select>
-            </div>
+                        <input
+                                type="number"
+                                id="maxHeadcount"
+                                min="1"
+                                required
+                                disabled
+                        >
+                    </div>
+                </div>
 
-            <div class="product-form-field">
-                <label for="dayOfWeek">정기 휴무 요일</label>
-                <select id="dayOfWeek" disabled>
-                    <option value="">없음</option>
-                    <option value="MONDAY">월요일</option>
-                    <option value="TUESDAY">화요일</option>
-                    <option value="WEDNESDAY">수요일</option>
-                    <option value="THURSDAY">목요일</option>
-                    <option value="FRIDAY">금요일</option>
-                    <option value="SATURDAY">토요일</option>
-                    <option value="SUNDAY">일요일</option>
-                </select>
-            </div>
-        </div>
+                <div class="product-form-full">
+                    <label for="dayOfWeek">
+                        정기 휴무 요일
+                    </label>
 
-        <div class="product-form-full">
-            <label for="description">설명</label>
-            <textarea id="description" rows="4" disabled placeholder="상품 설명을 입력하세요."></textarea>
-        </div>
+                    <select id="dayOfWeek" disabled>
+                        <option value="">없음</option>
+                        <option value="MONDAY">월요일</option>
+                        <option value="TUESDAY">화요일</option>
+                        <option value="WEDNESDAY">수요일</option>
+                        <option value="THURSDAY">목요일</option>
+                        <option value="FRIDAY">금요일</option>
+                        <option value="SATURDAY">토요일</option>
+                        <option value="SUNDAY">일요일</option>
+                    </select>
+                </div>
 
-        <div class="product-form-full">
-            <label for="unavailableDates">특정 불가 날짜</label>
-            <textarea id="unavailableDates" rows="3" disabled placeholder="비우면 값이 삭제됩니다."></textarea>
-            <div class="product-form-hint">예: 2026-08-29, 2026-09-02 또는 줄바꿈 구분</div>
-        </div>
+                <div class="product-form-full">
+                    <label for="unavailableDates">
+                        특정 불가 날짜
+                    </label>
 
-        <div class="product-form-field" style="margin-bottom: 24px;">
-            <label for="imageFile">상품 이미지</label>
-            <div class="product-image-upload">
-                <input type="file" id="imageFile" accept="image/*" disabled>
-                <img id="imagePreview" class="product-image-preview" alt="이미지 미리보기">
-            </div>
-            <div class="product-form-hint">새 이미지를 올리면 기존 이미지가 교체됩니다.</div>
-        </div>
+                    <textarea
+                            id="unavailableDates"
+                            rows="4"
+                            disabled
+                    ></textarea>
 
-        <div class="product-form-actions">
-            <button type="submit" id="submitBtn" class="product-form-submit" disabled>수정 내용 저장</button>
-        </div>
+                    <div class="product-form-hint">
+                        여러 날짜는 쉼표 또는 줄바꿈으로 구분합니다.
+                    </div>
+                </div>
 
-        <div id="messageBox" class="product-form-message"></div>
+                <div class="product-form-actions">
+                    <a
+                            th:href="@{/product}"
+                            class="product-form-cancel"
+                    >
+                        취소
+                    </a>
+
+                    <button
+                            type="submit"
+                            id="submitBtn"
+                            class="product-form-submit"
+                            disabled
+                    >
+                        수정 내용 저장
+                    </button>
+                </div>
+
+                <div
+                        id="messageBox"
+                        class="product-form-message"
+                ></div>
+            </section>
+        </aside>
+
+        <pre id="result" hidden>
+수정할 상품을 먼저 불러와주세요.
+        </pre>
     </form>
-
-    <h2 style="margin-top: 24px;">응답 결과</h2>
-    <pre id="result">수정할 판매 조건을 먼저 조회해주세요.</pre>
 </main>
 
 <script type="module" th:src="@{/product/js/product-update.js}"></script>

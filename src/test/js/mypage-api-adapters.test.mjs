@@ -58,3 +58,53 @@ test('원본 상태 코드로 목록을 필터링한다', () => {
 test('판매 내역 소스는 판매자 역할에만 노출한다', () => {
   assert.equal(adapters.mypageViews.sales.sources[0].sellerOnly, true);
 });
+
+test('구매·판매 거래의 원본 상태를 사용자용 단순 상태로 변환한다', () => {
+  const proposed = adapters.adaptMypagePayload('purchases', [{
+    activityId: 'PROPOSAL:1',
+    sourceType: 'PROPOSAL',
+    sourceId: 1,
+    direction: 'RECEIVED',
+    sourceStatus: 'SENT',
+    itemName: '샌드위치 제안',
+  }])[0];
+  const inProgress = adapters.adaptMypagePayload('sales', [{
+    activityId: 'QUOTE:2',
+    sourceType: 'QUOTE',
+    sourceId: 2,
+    direction: 'SENT',
+    sourceStatus: 'ACCEPTED',
+  }])[0];
+  const completed = adapters.adaptMypagePayload('purchases', [{
+    activityId: 'QUOTE:3',
+    sourceType: 'QUOTE',
+    sourceId: 3,
+    direction: 'RECEIVED',
+    sourceStatus: 'ACCEPTED',
+    paymentStatus: 'COMPLETED',
+  }])[0];
+
+  assert.deepEqual(
+    [proposed.statusCode, inProgress.statusCode, completed.statusCode],
+    ['PROPOSED', 'IN_PROGRESS', 'COMPLETED'],
+  );
+  assert.deepEqual(
+    [proposed.status, inProgress.status, completed.status],
+    ['제안', '진행 중', '완료'],
+  );
+});
+
+test('참여 채팅방을 최근 메시지 스니펫과 이동 링크로 변환한다', () => {
+  const [record] = adapters.adaptMypagePayload('chats', [{
+    chatRoomId: 17,
+    originType: 'PROPOSAL',
+    status: 'ACTIVE',
+    lastMessage: '배송 시간을 확인해 주세요.',
+    lastMessageAt: '2026-09-02T12:30:00',
+  }]);
+
+  assert.equal(record.detail, '배송 시간을 확인해 주세요.');
+  assert.equal(record.href, '/chat?roomId=17');
+  assert.equal(record.actionLabel, '채팅 열기');
+  assert.equal(record.status, '진행 중');
+});

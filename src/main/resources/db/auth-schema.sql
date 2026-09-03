@@ -9,6 +9,8 @@ create table if not exists users (
     created_at timestamptz not null,
     updated_at timestamptz not null,
     withdrawn_at timestamptz,
+    manual_suspension boolean not null default false,
+    manual_suspension_reason varchar(500),
     constraint uk_users_email unique (email),
     constraint ck_users_role check (role in ('USER', 'SELLER', 'ADMIN')),
     constraint ck_users_status check (status in ('ACTIVE', 'SUSPENDED', 'WITHDRAWN')),

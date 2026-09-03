@@ -30,6 +30,12 @@ public class QuoteService {
 	public Quote getQuoteEntity(Long quoteId) {
 		return findQuoteOrThrow(quoteId);
 	}
+
+	@Transactional
+	public Quote getQuoteEntityForPayment(Long quoteId) {
+		return quoteRepository.findByIdForPayment(quoteId)
+				.orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다. ID: " + quoteId));
+	}
 	// -----------------------------------------------------------
 	// 생성 - 채팅방 자동 생성 (기존 흐름: 구매자가 판매자를 지정해 견적 요청)
 	// -----------------------------------------------------------

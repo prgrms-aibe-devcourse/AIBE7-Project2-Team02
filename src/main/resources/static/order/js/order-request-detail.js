@@ -57,10 +57,16 @@ function renderOrder(order) {
         'orderContent'
     ).hidden = false;
 
-    document.getElementById(
-        'orderStatus'
-    ).textContent =
+    const status =
+        document.getElementById(
+            'orderStatus'
+        );
+
+    status.textContent =
         statusLabel(order.status);
+
+    status.dataset.status =
+        order.status || '';
 
     setField(
         'title',
@@ -82,12 +88,7 @@ function renderOrder(order) {
 
     setField(
         'budget',
-        `${
-            order.budgetType
-            === 'PER_PERSON'
-                ? '1인당'
-                : '총'
-        } ${formatNumber(order.budget)}원`
+        formatBudget(order)
     );
 
     setField(
@@ -98,6 +99,11 @@ function renderOrder(order) {
     setField(
         'deliveryAddress',
         order.deliveryAddress || '-'
+    );
+
+    setField(
+        'deliveryAddressDetail',
+        order.deliveryAddressDetail || '-'
     );
 
     setField(
@@ -288,6 +294,26 @@ function redirectToLogin() {
     throw new Error(
         'Redirecting to login'
     );
+}
+
+/**
+ * 주문 예산 유형에 맞는 상세 표시 문구를 만든다.
+ */
+function formatBudget(order) {
+    if (
+        order.budgetType
+        === 'PER_PERSON'
+    ) {
+        const totalBudget =
+            order.totalBudget
+            ?? Number(order.budget || 0)
+            * Number(order.quantity || 0);
+
+        return `1인당 ${formatNumber(order.budget)}원\n`
+            + `총 ${formatNumber(totalBudget)}원`;
+    }
+
+    return `총 ${formatNumber(order.budget)}원`;
 }
 
 /**

@@ -14,7 +14,15 @@ public interface AdminAccountRepository {
 
     Optional<UserSummary> findUser(long userId);
 
-    Optional<UserSummary> changeUserStatus(long userId, UserStatus status);
+    Optional<UserSummary> changeUserStatus(long userId, UserStatus status, String suspensionReason);
+
+    default Optional<UserSummary> changeUserStatus(long userId, UserStatus status) {
+        return changeUserStatus(userId, status, status == UserStatus.SUSPENDED ? "관리자 수동 정지" : null);
+    }
+
+    Optional<UserSummary> suspendForPenalty(long userId);
+
+    Optional<UserSummary> activateAfterPenalty(long userId);
 
     PageResult<SellerSummary> searchSellerApplications(
             SellerVerificationStatus status, int page, int size);

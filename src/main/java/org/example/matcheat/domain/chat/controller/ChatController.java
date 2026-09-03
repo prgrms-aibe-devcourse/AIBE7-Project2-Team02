@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.matcheat.domain.chat.dto.ChatRoomCreateRequest;
 import org.example.matcheat.domain.chat.dto.ChatRoomProductUpdateRequest;
 import org.example.matcheat.domain.chat.dto.ChatRoomResponse;
+import org.example.matcheat.domain.chat.entity.ChatRoom;
+import org.example.matcheat.global.dto.PageResponse;
 import org.example.matcheat.domain.chat.service.ChatService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,8 +46,15 @@ public class ChatController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<ChatRoomResponse>> getChatRooms(@AuthenticationPrincipal Jwt jwt) {
-		return ResponseEntity.ok(chatService.getChatRooms(Long.valueOf(jwt.getSubject())));
+	public ResponseEntity<?> getChatRooms(
+			@AuthenticationPrincipal Jwt jwt,
+			@RequestParam(required = false) Integer page,
+			@RequestParam(required = false) Integer size,
+			@RequestParam(required = false) ChatRoom.Status status) {
+		List<ChatRoomResponse> values = chatService.getChatRooms(Long.valueOf(jwt.getSubject()));
+		if (page == null && size == null && status == null) return ResponseEntity.ok(values);
+		return ResponseEntity.ok(PageResponse.from(values, page == null ? 0 : page, size == null ? 20 : size,
+				room -> status == null || status == room.getStatus()));
 	}
 
 	@Operation(summary = "채팅방 연결 상품 전환", description = "이 방이 가리키는 상품을 바꾼다. 참여자만 가능하며, 클라이언트에서 경고/확인을 거친 뒤 호출해야 한다.")

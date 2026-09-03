@@ -1,11 +1,13 @@
-# Login Account Management Module
+# Login Account Management Legacy Module
 
-Independent MatchEAT account module for email signup, email/password login, HS256 Bearer JWT support, and future profile/admin extension points.
+Archived standalone prototype for the original MatchEAT account implementation.
+
+The production application uses `src/main/java/org/example/matcheat/domain/account` as its account and login implementation. This directory is intentionally excluded from the root Gradle build and must not be added to the root `settings.gradle` or referenced by the root `build.gradle`.
 
 ## Start here
 
-- Implementation contract: `integration/ACCOUNT_SPEC.md`
-- Integration guide: `integration/INTEGRATION.md`
+- Historical implementation contract: `integration/ACCOUNT_SPEC.md`
+- Isolation policy: `integration/INTEGRATION.md`
 - PostgreSQL schema contract: `integration/auth-schema.sql`
 - Environment variable template: `integration/env.example`
 
@@ -18,4 +20,4 @@ $env:GRADLE_USER_HOME="$PWD\.gradle-account-module"
 .\gradlew.bat -p modules\login-account-management clean test
 ```
 
-The root application does not include this module until the team applies the Gradle and security snippets under `integration`. The module directory is the single source of truth; do not duplicate its Java sources in the root `src` directory.
+This command verifies only the archived prototype. Production login regressions are covered by the root application's account and security tests.

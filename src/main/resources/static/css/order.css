@@ -440,75 +440,180 @@
     }
 }
 
-/* 주문 상세 페이지 상단 제목과 진행 상태 영역 */
+/* =========================================================
+   주문 상세
+   ========================================================= */
+
+.order-detail-page {
+    padding-top: 48px;
+}
+
+
+/* 페이지 상단 */
+
 .order-detail-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
 
     margin-bottom: 24px;
 }
 
-.order-detail-header h1 {
-    margin: 0 0 8px;
+.order-detail-heading {
+    min-width: 0;
 }
 
-.order-detail-header p {
+.order-detail-heading h1 {
     margin: 0;
+
+    font-size: 30px;
+    line-height: 1.35;
+    letter-spacing: -0.035em;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
-/* 주문 상세 페이지의 정보 카드 */
+.order-detail-heading > p:last-child {
+    margin: 8px 0 0;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    color: var(--color-text-secondary, #6B7280);
+}
+
+
+/* 상세 카드 */
+
 .order-detail-card {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     padding: 24px;
 
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--color-border, #E8DDD8);
+    border-radius: 10px;
 
-    background-color: #fff;
+    background-color: var(--color-surface, #FFFFFF);
 }
 
-.order-detail-card h2 {
-    margin: 0 0 20px;
+.order-detail-card-header {
+    margin-bottom: 20px;
     padding-bottom: 16px;
 
-    border-bottom: 1px solid #eee;
-
-    font-size: 20px;
+    border-bottom: 1px solid var(--color-border, #E8DDD8);
 }
 
-/* 주문 상세 정보의 라벨과 값을 정렬 */
-.order-detail-info {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.order-detail-card-header h2 {
+    margin: 0;
+
+    font-size: 18px;
+    line-height: 1.4;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
-.order-detail-row {
+.order-detail-card-header p {
+    margin: 5px 0 0;
+
+    font-size: 13px;
+    line-height: 1.5;
+
+    color: var(--color-text-secondary, #6B7280);
+}
+
+
+/* 주요 주문 조건 */
+
+.order-detail-summary {
     display: grid;
-    grid-template-columns: 140px 1fr;
-    align-items: baseline;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.order-detail-summary-item {
+    min-width: 0;
 }
 
 .order-detail-label {
-    color: #777;
-    font-size: 14px;
-    font-weight: 600;
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+
+    color: var(--color-text-secondary, #6B7280);
 }
 
-/* 상세 요청사항 본문 */
+.order-detail-summary-item > strong,
+.order-detail-summary-item > span:not(.order-detail-label) {
+    font-size: 14px;
+    line-height: 1.55;
+
+    color: var(--color-text-primary, #1F2937);
+}
+
+.order-detail-summary-item strong {
+    font-weight: 700;
+}
+
+.order-detail-budget {
+    white-space: pre-line;
+}
+
+.order-detail-address {
+    margin-top: 20px;
+    padding-top: 18px;
+
+    border-top: 1px solid var(--color-border, #E8DDD8);
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    color: var(--color-text-primary, #1F2937);
+}
+
+
+/* 상세 요청사항 */
+
 .order-detail-description {
+    min-height: 52px;
     margin: 0;
 
-    line-height: 1.7;
+    font-size: 14px;
+    line-height: 1.75;
+
+    color: var(--color-text-primary, #1F2937);
+
     white-space: pre-wrap;
 }
 
-/* 주문 상세 페이지 하단 액션 영역 */
+
+/* 참고 이미지 */
+
+.order-detail-reference-image {
+    display: block;
+
+    width: min(100%, 640px);
+    max-height: 480px;
+
+    object-fit: contain;
+
+    border: 1px solid var(--color-border, #E8DDD8);
+    border-radius: 8px;
+
+    background-color: var(--color-surface-subtle, #FAF7F5);
+}
+
+
+/* 하단 액션 */
+
 .order-detail-actions {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 16px;
 
     margin-top: 24px;
 }
@@ -516,47 +621,156 @@
 .order-detail-action-group {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
 }
 
-.order-detail-action-group form {
-    margin: 0;
+.order-detail-back {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 40px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: var(--color-text-secondary, #6B7280);
+    text-decoration: none;
 }
 
-/* 목록으로 이동하는 보조 액션 */
-.order-detail-back {
-    color: #444;
-    text-decoration: none;
+.order-detail-back::before {
+    content: "‹";
+
+    margin-right: 4px;
+
+    font-size: 18px;
+    line-height: 1;
 }
 
 .order-detail-back:hover {
-    text-decoration: underline;
+    color: var(--color-primary, #E85D3F);
 }
 
-/* 주문 수정/취소 버튼의 공통 형태 */
 .order-detail-button {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-    padding: 10px 16px;
-    border-radius: 6px;
+    min-height: 40px;
+    padding: 0 16px;
 
+    border-radius: 8px;
+
+    font: inherit;
     font-size: 14px;
+    line-height: 1;
+    font-weight: 600;
+
     text-decoration: none;
+
     cursor: pointer;
+
+    transition: background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
+
+
+/* 주요 액션 */
+
+.order-detail-match,
+.order-detail-proposal {
+    border: 1px solid var(--color-primary, #E85D3F);
+
+    background-color: var(--color-primary, #E85D3F);
+    color: #FFFFFF;
+}
+
+.order-detail-match:hover,
+.order-detail-proposal:hover {
+    border-color: var(--color-primary-hover, #C94A30);
+
+    background-color: var(--color-primary-hover, #C94A30);
+    color: #FFFFFF;
+}
+
 
 /* 주문 수정 */
+
 .order-detail-edit {
-    border: 1px solid #222;
-    background-color: #222;
-    color: #fff;
+    border: 1px solid var(--color-border-strong, #CFC1BA);
+
+    background-color: var(--color-surface, #FFFFFF);
+    color: var(--color-text-primary, #1F2937);
 }
 
+.order-detail-edit:hover {
+    border-color: var(--color-primary, #E85D3F);
+
+    background-color: var(--color-primary-soft, #FFF2ED);
+    color: var(--color-primary, #E85D3F);
+}
+
+
 /* 주문 취소 */
+
 .order-detail-cancel {
-    border: 1px solid #ccc;
-    background-color: #fff;
-    color: #222;
+    border: 1px solid #F5B7B7;
+
+    background-color: var(--color-surface, #FFFFFF);
+    color: #C62828;
+}
+
+.order-detail-cancel:hover {
+    border-color: #E89A9A;
+
+    background-color: #FCE4E4;
+    color: #B91C1C;
+}
+
+
+/* 상세 반응형 */
+
+@media (max-width: 900px) {
+
+    .order-detail-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+
+    .order-detail-page {
+        padding-top: 32px;
+    }
+
+    .order-detail-header {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .order-detail-summary {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .order-detail-card {
+        padding: 20px;
+    }
+
+    .order-detail-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .order-detail-action-group {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .order-detail-button {
+        width: 100%;
+    }
 }
 
 /* 주문 진행 단계를 보여주는 타임라인 */
@@ -638,173 +852,191 @@
     background-color: #777;
 }
 
-/* 신규 주문 등록 페이지 상단 안내 영역 */
+/* =========================================================
+   주문 등록 / 수정
+   ========================================================= */
+
+.order-form-page {
+    padding-top: 48px;
+}
+
+
+/* 페이지 상단 */
+
 .order-form-header {
     margin-bottom: 24px;
 }
 
 .order-form-header h1 {
-    margin: 0 0 8px;
-}
-
-.order-form-header p {
     margin: 0;
+
+    font-size: 30px;
+    line-height: 1.35;
+    letter-spacing: -0.035em;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
-/* 신규 주문 등록 폼 카드 */
+.order-form-header > p:last-child {
+    margin: 8px 0 0;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    color: var(--color-text-secondary, #6B7280);
+}
+
+
+/* 폼 카드 */
+
 .order-form-card {
-    padding: 32px;
+    padding: 28px;
 
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--color-border, #E8DDD8);
+    border-radius: 10px;
 
-    background-color: #fff;
+    background-color: var(--color-surface, #FFFFFF);
 }
 
-/* 신규 주문 등록 폼의 2열 입력 영역 */
+
+/* 폼 행 */
+
 .order-form-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
+    gap: 20px;
 
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
-/* 신규 주문 등록 폼의 개별 입력 항목 */
+
+/* 개별 필드 */
+
 .order-form-field {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
+}
+
+.order-form-field label {
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 600;
+
+    color: var(--color-text-primary, #1F2937);
 }
 
 .order-form-field input,
 .order-form-field select,
 .order-form-field textarea {
     width: 100%;
-    box-sizing: border-box;
+    min-width: 0;
 
     padding: 10px 12px;
+
+    font-size: 14px;
 }
 
-/* 희망 예산의 기준과 금액을 한 줄로 배치 */
+.order-form-field input,
+.order-form-field select {
+    min-height: 42px;
+}
+
+.order-form-field textarea {
+    min-height: 120px;
+
+    line-height: 1.65;
+
+    resize: vertical;
+}
+
+
+/* 전체 너비 필드 */
+
+.order-form-full {
+    margin-bottom: 20px;
+}
+
+
+/* 희망 예산 */
+
 .order-budget-inputs {
     display: grid;
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 120px minmax(0, 1fr);
     gap: 8px;
 }
 
-.order-budget-inputs select,
-.order-budget-inputs input {
-    width: 100%;
-    box-sizing: border-box;
 
-    padding: 10px 12px;
+/* 배송지 검색 */
+
+.order-address-inputs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
 }
 
-/* 한 줄 전체 너비를 사용하는 주문 입력 항목 */
-.order-form-full {
-    margin-bottom: 24px;
+.order-address-inputs input {
+    min-width: 0;
 }
 
-.order-form-full > input,
-.order-form-full > select,
-.order-form-full > textarea {
-    width: 100%;
-    box-sizing: border-box;
+.order-address-search {
+    min-width: 96px;
+    min-height: 42px;
+    padding: 0 14px;
 
-    padding: 10px 12px;
+    border: 1px solid var(--color-border-strong, #CFC1BA);
+    border-radius: 8px;
+
+    background-color: var(--color-surface, #FFFFFF);
+    color: var(--color-text-primary, #1F2937);
+
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.order-form-full textarea {
-    resize: vertical;
-    min-height: 120px;
+.order-address-search:hover {
+    border-color: var(--color-primary, #E85D3F);
+
+    background-color: var(--color-primary-soft, #FFF2ED);
+    color: var(--color-primary, #E85D3F);
 }
 
-/* 기타 카테고리 직접 입력 영역 */
+
+/* 입력 도움말 */
+
+.order-form-help,
+.order-image-help {
+    margin: 0;
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    color: var(--color-text-secondary, #6B7280);
+}
+
+
+/* 기타 카테고리 */
+
 .order-custom-category {
-    margin-top: 12px;
+    margin-top: 6px;
 }
 
 .order-custom-category[hidden] {
     display: none;
 }
 
-/* 신규 주문 등록 폼 하단 액션 영역 */
-.order-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
 
-    margin-top: 8px;
-}
-
-/* 주문 등록 화면 하단 액션 버튼의 공통 크기 */
-.order-form-cancel,
-.order-form-submit {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-
-    box-sizing: border-box;
-    height: 42px;
-    padding: 0 16px;
-
-    border-radius: 6px;
-
-    font: inherit;
-    font-size: 14px;
-    line-height: 1;
-}
-
-/* 주문 작성 취소 */
-.order-form-cancel {
-    border: 1px solid #ccc;
-
-    background-color: #fff;
-    color: #222;
-
-    text-decoration: none;
-}
-
-/* 주문 등록 주요 액션 */
-.order-form-submit {
-    border: 1px solid #222;
-
-    background-color: #222;
-    color: #fff;
-
-    cursor: pointer;
-}
-
-/* 판매자가 주문에 수주 제안을 등록하는 주요 액션 */
-.order-detail-proposal {
-    border: 1px solid #222;
-    background-color: #222;
-    color: #fff;
-}
-
-/* 현재 주문 조건으로 계산된 맞춤 상품 결과로 이동 */
-.order-detail-match {
-    border: 1px solid #10b981;
-    background-color: #fff;
-    color: #087a55;
-}
-
-.order-detail-match:hover {
-    background-color: #eefaf5;
-}
-
-/* 주문 참고 이미지 */
-
-.order-image-help {
-    margin: 8px 0 0;
-
-    font-size: 14px;
-}
+/* 참고 이미지 */
 
 .order-image-preview-area {
-    margin-top: 14px;
+    margin-top: 8px;
 }
 
 .order-image-preview {
@@ -815,18 +1047,122 @@
 
     object-fit: contain;
 
-    border-radius: 12px;
+    border: 1px solid var(--color-border, #E8DDD8);
+    border-radius: 8px;
+
+    background-color: var(--color-surface-subtle, #FAF7F5);
 }
 
-.order-detail-reference-image {
-    display: block;
 
-    width: min(100%, 640px);
-    max-height: 480px;
+/* 하단 액션 */
 
-    object-fit: contain;
+.order-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
 
-    border-radius: 12px;
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.order-form-cancel,
+.order-form-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+    padding: 0 16px;
+
+    border-radius: 8px;
+
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 600;
+}
+
+
+/* 취소 */
+
+.order-form-cancel {
+    border: 1px solid var(--color-border-strong, #CFC1BA);
+
+    background-color: var(--color-surface, #FFFFFF);
+    color: var(--color-text-primary, #1F2937);
+
+    text-decoration: none;
+}
+
+.order-form-cancel:hover {
+    border-color: var(--color-primary, #E85D3F);
+
+    background-color: var(--color-primary-soft, #FFF2ED);
+    color: var(--color-primary, #E85D3F);
+}
+
+
+/* 등록 / 수정 저장 */
+
+.order-form-submit {
+    border: 1px solid var(--color-primary, #E85D3F);
+
+    background-color: var(--color-primary, #E85D3F);
+    color: #FFFFFF;
+
+    cursor: pointer;
+
+    transition: border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.order-form-submit:hover {
+    border-color: var(--color-primary-hover, #C94A30);
+    background-color: var(--color-primary-hover, #C94A30);
+}
+
+
+/* 반응형 */
+
+@media (max-width: 720px) {
+
+    .order-form-page {
+        padding-top: 32px;
+    }
+
+    .order-form-card {
+        padding: 20px;
+    }
+
+    .order-form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+
+        margin-bottom: 16px;
+    }
+
+    .order-form-full {
+        margin-bottom: 16px;
+    }
+
+    .order-address-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .order-address-search {
+        width: 100%;
+    }
+
+    .order-form-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .order-form-cancel,
+    .order-form-submit {
+        width: 100%;
+    }
 }
 
 .order-budget-values {

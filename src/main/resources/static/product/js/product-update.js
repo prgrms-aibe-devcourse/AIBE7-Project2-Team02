@@ -1,11 +1,8 @@
-import { authFetch, readApiBody, readCurrentUserId } from '/account/js/auth-client.js';
+import {authFetch, readApiBody, readCurrentUserId} from '/account/js/auth-client.js';
 
 /**
  * 판매 조건 ID로 기존 데이터를 조회해 폼에 채운 뒤, 수정 요청을 보낸다.
  */
-const searchIdInput = document.getElementById('searchId');
-const searchBtn = document.getElementById('searchBtn');
-
 const updateForm = document.getElementById('productUpdateForm');
 const productNameInput = document.getElementById('productName');
 const productIdInput = document.getElementById('productId');
@@ -13,7 +10,16 @@ const minHeadcountInput = document.getElementById('minHeadcount');
 const maxHeadcountInput = document.getElementById('maxHeadcount');
 const servingPriceInput = document.getElementById('servingPrice');
 const deliveryRadiusKmInput = document.getElementById('deliveryRadiusKm');
-const storeAddressInput = document.getElementById('storeAddress');
+const storeAddressInput =
+    document.getElementById('storeAddress');
+
+const storeAddressDetailInput =
+    document.getElementById(
+        'storeAddressDetail'
+    );
+
+const storeAddressSearchButton =
+    document.getElementById('storeAddressSearchButton');
 const categoryInput = document.getElementById('category');
 const descriptionInput = document.getElementById('description');
 const dayOfWeekInput = document.getElementById('dayOfWeek');
@@ -28,7 +34,8 @@ const resultBox = document.getElementById('result');
 
 const formFields = [
     productNameInput, minHeadcountInput, maxHeadcountInput, servingPriceInput,
-    deliveryRadiusKmInput, storeAddressInput, categoryInput, descriptionInput,
+    deliveryRadiusKmInput, storeAddressInput, storeAddressDetailInput,
+    categoryInput, descriptionInput,
     dayOfWeekInput, unavailableDatesInput, imageFileInput
 ];
 
@@ -61,9 +68,52 @@ function updatePreview(url) {
 }
 
 function setFormEnabled(enabled) {
-    formFields.forEach(field => { field.disabled = !enabled; });
-    submitBtn.disabled = !enabled;
+    formFields.forEach(field => {
+        field.disabled = !enabled;
+    });
+
+    storeAddressSearchButton.disabled =
+        !enabled;
+
+    submitBtn.disabled =
+        !enabled;
 }
+
+/**
+ * Kakao 우편번호 검색창을 열고 선택한 주소를 가게 주소에 입력한다.
+ */
+function openStoreAddressSearch() {
+    if (
+        typeof kakao === 'undefined'
+        || !kakao.Postcode
+    ) {
+        alert(
+            '주소 검색 서비스를 불러오지 못했습니다.'
+        );
+        return;
+    }
+
+    new kakao.Postcode({
+        oncomplete(data) {
+            const selectedAddress =
+                data.roadAddress
+                || data.jibunAddress
+                || data.address;
+
+            storeAddressInput.value =
+                selectedAddress;
+
+// 주소를 재검색하면 기존 상세 주소를 초기화한다.
+            storeAddressDetailInput.value = '';
+            storeAddressDetailInput.focus();
+        }
+    }).open();
+}
+
+storeAddressSearchButton.addEventListener(
+    'click',
+    openStoreAddressSearch
+);
 
 imageFileInput.addEventListener('change', () => {
     const file = imageFileInput.files?.[0];
@@ -100,6 +150,8 @@ async function loadProductData(id) {
         servingPriceInput.value = product.servingPrice ?? '';
         deliveryRadiusKmInput.value = product.deliveryRadiusKm;
         storeAddressInput.value = product.storeAddress;
+        storeAddressDetailInput.value =
+            product.storeAddressDetail ?? '';
         categoryInput.value = product.category;
         descriptionInput.value = product.description ?? '';
         dayOfWeekInput.value = product.dayOfWeek ?? '';
@@ -110,13 +162,13 @@ async function loadProductData(id) {
         updatePreview(product.imageUrl ? encodeURI(product.imageUrl) : null);
 
         setFormEnabled(true);
+        messageBox.textContent = '';
+        messageBox.className = 'product-form-message';
 
         resultBox.textContent = JSON.stringify(product, null, 2);
-        showMessage('성공적으로 데이터를 불러왔습니다.', true);
 
-        searchIdInput.value = id;
         detailBackLink.href = `/product/detail?id=${id}`;
-        detailBackLink.style.display = 'inline-block';
+        detailBackLink.style.display = 'inline-flex';
     } catch (error) {
         resultBox.textContent = error.message;
         showMessage(error.message, false);
@@ -129,17 +181,6 @@ async function loadProductData(id) {
         detailBackLink.style.display = 'none';
     }
 }
-
-searchBtn.addEventListener('click', () => {
-    loadProductData(searchIdInput.value.trim());
-});
-
-searchIdInput.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        loadProductData(searchIdInput.value.trim());
-    }
-});
 
 updateForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -157,6 +198,7 @@ updateForm.addEventListener('submit', async (event) => {
         servingPrice: Number(servingPriceInput.value),
         deliveryRadiusKm: Number(deliveryRadiusKmInput.value),
         storeAddress: storeAddressInput.value,
+        storeAddressDetail: storeAddressDetailInput.value,
         category: categoryInput.value,
         description: descriptionInput.value,
         dayOfWeek: dayOfWeekInput.value || null,
@@ -167,7 +209,7 @@ updateForm.addEventListener('submit', async (event) => {
         resultBox.textContent = '수정 요청 전송 중...';
 
         const formData = new FormData();
-        formData.append('product', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
+        formData.append('product', new Blob([JSON.stringify(requestData)], {type: 'application/json'}));
 
         const imageFile = imageFileInput.files?.[0];
         if (imageFile) {
@@ -182,11 +224,15 @@ updateForm.addEventListener('submit', async (event) => {
         const data = await readApiBody(response);
 
         if (!response.ok) {
-            throw new Error(data?.message ?? '수정에 실패했습니다.');
+            throw new Error(
+                data?.message ?? '수정에 실패했습니다.'
+            );
         }
 
+        window.location.href =
+            `/product/detail?id=${id}`;
+
         resultBox.textContent = JSON.stringify(data, null, 2);
-        showMessage('판매 조건이 성공적으로 수정되었습니다!', true);
     } catch (error) {
         resultBox.textContent = error.message;
         showMessage(`수정 실패: ${error.message}`, false);
@@ -194,8 +240,15 @@ updateForm.addEventListener('submit', async (event) => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    const idParam = new URLSearchParams(window.location.search).get('id');
-    if (idParam) {
-        loadProductData(idParam);
+    const idParam =
+        new URLSearchParams(
+            window.location.search
+        ).get('id');
+
+    if (!idParam) {
+        window.location.href = '/product';
+        return;
     }
+
+    loadProductData(idParam);
 });

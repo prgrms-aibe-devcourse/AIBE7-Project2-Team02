@@ -6,18 +6,19 @@
     <title>주문 등록 | MatchEAT</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/order.css}">
+    <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 
 <!-- 주문 요청 정보를 입력받는 Thymeleaf 등록 페이지 -->
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main>
-
+<main class="order-form-page">
     <!-- 신규 주문 등록 페이지의 제목과 안내 영역 -->
     <section class="order-form-header">
-        <h1>신규 주문 등록</h1>
-        <p>원하는 주문 조건을 입력하면 조건에 맞는 판매자를 찾을 수 있습니다.</p>
+        <p class="order-page-kicker">주문 등록</p>
+        <h1>새 주문 요청 등록</h1>
+        <p>필요한 음식과 행사 조건을 입력하면 조건에 맞는 상품을 찾아볼 수 있습니다.</p>
     </section>
 
     <!-- 신규 주문 정보를 입력하는 폼 영역 -->
@@ -120,17 +121,53 @@
             </div>
         </div>
 
-        <!-- 배송지 입력 영역 -->
-        <div class="order-form-field order-form-full">
-            <label for="deliveryAddress">배송지</label>
+        <!-- 배송지와 상세 주소 입력 영역 -->
+        <div class="order-form-row">
 
-            <input type="text"
-                   id="deliveryAddress"
-                   th:field="*{deliveryAddress}"
-                   placeholder="배송 받을 주소를 입력해주세요"
-                   required>
+            <div class="order-form-field">
+                <label for="deliveryAddress">
+                    배송지
+                </label>
+
+                <div class="order-address-inputs">
+                    <input type="text"
+                           id="deliveryAddress"
+                           th:field="*{deliveryAddress}"
+                           placeholder="주소 검색을 이용해주세요"
+                           autocomplete="street-address"
+                           required>
+
+                    <button type="button"
+                            id="addressSearchButton"
+                            class="order-address-search">
+                        주소 검색
+                    </button>
+                </div>
+
+                <p class="order-form-help">
+                    이 주소를 기준으로 배송 가능 여부를 확인합니다.
+                </p>
+            </div>
+
+            <div class="order-form-field">
+                <label for="deliveryAddressDetail">
+                    상세 주소
+                </label>
+
+                <input type="text"
+                       id="deliveryAddressDetail"
+                       th:field="*{deliveryAddressDetail}"
+                       maxlength="255"
+                       autocomplete="address-line2"
+                       placeholder="예: 101동 202호 / 3층 행사장"
+                       required>
+
+                <p class="order-form-help">
+                    실제 배송 위치를 상세하게 입력해주세요.
+                </p>
+            </div>
+
         </div>
-
         <!-- 상세 요청사항 입력 영역 -->
         <div class="order-form-field order-form-full">
             <label for="description">상세 요청사항</label>

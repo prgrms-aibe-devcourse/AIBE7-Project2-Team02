@@ -17,7 +17,13 @@ import java.time.LocalDateTime;
  * 사실상 불변이지만, 영수증이 Quote 조회에 의존하지 않게 하기 위함이다.
  */
 @Entity
-@Table(name = "payments")
+@Table(
+		name = "payments",
+		uniqueConstraints = @UniqueConstraint(
+				name = "uk_payments_quote_id",
+				columnNames = "quote_id"
+		)
+)
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -27,7 +33,7 @@ public class Payment {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false)
+	@Column(name = "quote_id", nullable = false)
 	private Long quoteId;
 
 	@Column(nullable = false)

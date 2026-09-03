@@ -19,10 +19,11 @@
             <a th:href="@{/admin}" data-admin-view="dashboard">대시보드</a>
             <a th:href="@{/admin/users}" data-admin-view="users">회원 관리</a>
             <a th:href="@{/admin/sellers}" data-admin-view="sellers">판매자 심사</a>
+            <a th:href="@{/admin/reports}" data-admin-view="reports">신고함 <span class="admin-nav-badge" data-report-badge hidden></span></a>
         </nav>
         <div class="admin-future">
             <span>후속 연결</span>
-            <p>신고 · 문의 · 상품 · 주문 · 계약</p>
+            <p>상품 · 주문 · 계약</p>
         </div>
     </aside>
 
@@ -95,6 +96,24 @@
             <div class="seller-list" data-seller-rows></div>
             <p class="empty-table" data-seller-empty hidden>조건에 맞는 판매자 신청이 없습니다.</p>
             <div class="pagination" data-seller-pagination></div>
+        </div>
+
+        <div data-panel="reports" hidden>
+            <form class="admin-filter" data-report-filter>
+                <label>처리 상태
+                    <select name="status">
+                        <option value="">전체</option>
+                        <option value="PENDING">접수</option>
+                        <option value="IN_REVIEW">검토 중</option>
+                        <option value="RESOLVED">처리 완료</option>
+                        <option value="REJECTED">반려</option>
+                    </select>
+                </label>
+                <button type="submit">조회</button>
+            </form>
+            <div class="report-admin-list" data-report-rows></div>
+            <p class="empty-table" data-report-empty hidden>조건에 맞는 신고가 없습니다.</p>
+            <div class="pagination" data-report-pagination></div>
         </div>
 
         <div class="admin-loading" data-admin-loading>

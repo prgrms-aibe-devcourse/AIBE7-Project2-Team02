@@ -25,7 +25,8 @@ public class PaymentService {
 
 	@Transactional
 	public PaymentResponse pay(Long quoteId, Long currentUserId) {
-		Quote quote = quoteService.getQuoteEntity(quoteId);
+		// 견적 행을 잠가 같은 견적의 결제 생성과 PG 호출을 한 번씩만 수행한다.
+		Quote quote = quoteService.getQuoteEntityForPayment(quoteId);
 
 		if (!currentUserId.equals(quote.getBuyerId())) {
 			throw new AccessDeniedException("결제는 구매자 본인만 할 수 있습니다.");

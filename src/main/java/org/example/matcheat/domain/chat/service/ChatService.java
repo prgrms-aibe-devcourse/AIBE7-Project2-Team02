@@ -3,7 +3,9 @@ package org.example.matcheat.domain.chat.service;
 import lombok.RequiredArgsConstructor;
 import org.example.matcheat.domain.chat.dto.ChatRoomCreateRequest;
 import org.example.matcheat.domain.chat.dto.ChatRoomResponse;
+import org.example.matcheat.domain.chat.entity.ChatMessage;
 import org.example.matcheat.domain.chat.entity.ChatRoom;
+import org.example.matcheat.domain.chat.repository.ChatMessageRepository;
 import org.example.matcheat.domain.chat.repository.ChatRoomRepository;
 import org.example.matcheat.domain.account.service.TradeAccountValidationService;
 import org.example.matcheat.support.product.ProductOwnerLookup;
@@ -11,12 +13,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ChatService {
 
 	private final ChatRoomRepository chatRoomRepository;
+	private final ChatMessageRepository chatMessageRepository;
 	private final TradeAccountValidationService accounts;
 	private final ProductOwnerLookup productOwnerLookup;
 
@@ -130,8 +136,20 @@ public class ChatService {
 	@Transactional(readOnly = true)
 	public List<ChatRoomResponse> getChatRooms(Long currentUserId) {
 		Long sellerProfileId = accounts.sellerIdForUserOrNull(currentUserId);
-		return chatRoomRepository.findAllByParticipant(currentUserId, sellerProfileId).stream()
-				.map(ChatRoomResponse::from)
+		List<ChatRoom> chatRooms = chatRoomRepository.findAllByParticipant(currentUserId, sellerProfileId);
+		if (chatRooms.isEmpty()) {
+			return List.of();
+		}
+
+		List<Long> chatRoomIds = chatRooms.stream().map(ChatRoom::getId).toList();
+		Map<Long, ChatMessage> latestMessages = chatMessageRepository.findLatestByChatRoomIds(chatRoomIds).stream()
+				.collect(Collectors.toMap(ChatMessage::getChatRoomId, Function.identity()));
+
+		return chatRooms.stream()
+				.map(chatRoom -> ChatRoomResponse.from(chatRoom, latestMessages.get(chatRoom.getId())))
+				.sorted((left, right) -> compareNewestFirst(sortAt(left), sortAt(right)))
 				.toList();
 	}
+
 }
+

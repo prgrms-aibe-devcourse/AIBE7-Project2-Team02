@@ -73,6 +73,8 @@ class SecurityConfigMvcTest {
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/v1/quotes/1/payments"))
                 .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1/orders/purchases"))
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/v1/chat-rooms")
                         .with(jwt().authorities(() -> "ROLE_USER")))
@@ -81,6 +83,9 @@ class SecurityConfigMvcTest {
                         .with(jwt().authorities(() -> "ROLE_USER")))
                 .andExpect(status().isOk());
         mockMvc.perform(get("/api/v1/quotes/1/payments")
+                        .with(jwt().authorities(() -> "ROLE_USER")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/orders/purchases")
                         .with(jwt().authorities(() -> "ROLE_USER")))
                 .andExpect(status().isOk());
     }
@@ -120,6 +125,14 @@ class SecurityConfigMvcTest {
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(get("/api/v1/requests")
+                        .with(jwt().authorities(() -> "ROLE_USER", () -> "ROLE_SELLER")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/orders/sales")
+                        .with(jwt().authorities(() -> "ROLE_USER")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/v1/orders/sales")
                         .with(jwt().authorities(() -> "ROLE_USER", () -> "ROLE_SELLER")))
                 .andExpect(status().isOk());
     }
@@ -175,7 +188,9 @@ class SecurityConfigMvcTest {
         @GetMapping({
                 "/api/v1/chat-rooms",
                 "/api/v1/chat-files/{fileId}",
-                "/api/v1/quotes/{quoteId}/payments"
+                "/api/v1/quotes/{quoteId}/payments",
+                "/api/v1/orders/purchases",
+                "/api/v1/orders/sales"
         })
         String readProtectedTradeResource() {
             return "ok";

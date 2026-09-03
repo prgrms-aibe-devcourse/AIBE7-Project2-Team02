@@ -630,6 +630,7 @@
         max-height: 220px;
     }
 
+
     /* 상품 태그 (견적 카드 상단, 테스트용 productId 변경 포함) */
 
     .chat-product-tag {
@@ -679,3 +680,4 @@
         font-family: inherit;
     }
 }
+

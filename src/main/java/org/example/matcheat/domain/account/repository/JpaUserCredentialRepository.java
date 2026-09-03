@@ -38,6 +38,11 @@ public class JpaUserCredentialRepository implements UserCredentialRepository {
     }
 
     @Override
+    public Optional<String> findManualSuspensionReason(long userId) {
+        return repository.findById(userId).map(UserAccountEntity::manualSuspensionReason);
+    }
+
+    @Override
     public UserAccount save(UserAccount account) {
         try {
             return repository.saveAndFlush(UserAccountEntity.fromDomain(account)).toDomain();
@@ -50,6 +55,14 @@ public class JpaUserCredentialRepository implements UserCredentialRepository {
     public Optional<UserAccount> updateName(long userId, String name) {
         return repository.findById(userId).map(entity -> {
             entity.changeName(name);
+            return entity.toDomain();
+        });
+    }
+
+    @Override
+    public Optional<UserAccount> updatePassword(long userId, String passwordHash) {
+        return repository.findById(userId).map(entity -> {
+            entity.changePassword(passwordHash);
             return entity.toDomain();
         });
     }

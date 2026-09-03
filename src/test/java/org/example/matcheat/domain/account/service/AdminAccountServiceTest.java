@@ -4,6 +4,7 @@ import org.example.matcheat.domain.account.enums.SellerVerificationStatus;
 import org.example.matcheat.domain.account.enums.UserRole;
 import org.example.matcheat.domain.account.enums.UserStatus;
 import org.example.matcheat.domain.account.repository.AdminAccountRepository;
+import org.example.matcheat.domain.account.repository.AccountPenaltyRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -26,11 +27,13 @@ class AdminAccountServiceTest {
 
     private AdminAccountRepository repository;
     private AdminAccountService service;
+    private AccountPenaltyRepository penalties;
 
     @BeforeEach
     void setUp() {
         repository = mock(AdminAccountRepository.class);
-        service = new AdminAccountService(repository, Clock.fixed(NOW, ZoneOffset.UTC));
+        penalties = mock(AccountPenaltyRepository.class);
+        service = new AdminAccountService(repository, penalties, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     @Test
@@ -75,9 +78,21 @@ class AdminAccountServiceTest {
         AdminAccountRepository.UserSummary active = user(8L, UserStatus.ACTIVE);
         AdminAccountRepository.UserSummary suspended = user(8L, UserStatus.SUSPENDED);
         when(repository.findUser(8L)).thenReturn(Optional.of(active));
-        when(repository.changeUserStatus(8L, UserStatus.SUSPENDED)).thenReturn(Optional.of(suspended));
+        when(repository.changeUserStatus(8L, UserStatus.SUSPENDED, "policy violation"))
+                .thenReturn(Optional.of(suspended));
 
-        assertThat(service.changeUserStatus(7L, 8L, UserStatus.SUSPENDED)).isEqualTo(suspended);
+        assertThat(service.changeUserStatus(7L, 8L, UserStatus.SUSPENDED, "policy violation"))
+                .isEqualTo(suspended);
+    }
+
+    @Test
+    void preventsActivationWhileTimedPenaltyRemains() {
+        when(repository.findUser(8L)).thenReturn(Optional.of(user(8L, UserStatus.SUSPENDED)));
+        when(penalties.existsByUserIdAndReleasedAtIsNullAndExpiresAtAfter(8L, NOW)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.changeUserStatus(7L, 8L, UserStatus.ACTIVE))
+                .isInstanceOfSatisfying(AccountApplicationException.class,
+                        exception -> assertThat(exception.code()).isEqualTo(AccountErrorCode.VALIDATION_FAILED));
     }
 
     @Test

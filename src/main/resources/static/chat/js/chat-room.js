@@ -195,7 +195,7 @@ function renderRoomList() {
 
     state.rooms
         .slice()
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .sort((a, b) => new Date(b.lastMessageAt || b.createdAt) - new Date(a.lastMessageAt || a.createdAt))
         .forEach((room) => {
             const button = document.createElement('button');
             button.type = 'button';
@@ -219,7 +219,7 @@ function renderRoomList() {
 
             const sub = document.createElement('span');
             sub.className = 'chat-room-item-sub';
-            sub.textContent = originLabel(room.originType);
+            sub.textContent = room.lastMessage || originLabel(room.originType);
 
             button.append(top, sub);
             button.addEventListener('click', () => selectRoom(room.chatRoomId));
@@ -272,6 +272,12 @@ function renderRoomHeader(room) {
     const statusEl = el('chatRoomStatus');
     statusEl.textContent = room.status === 'CLOSED' ? '종료됨' : '진행 중';
     statusEl.classList.toggle('is-closed', room.status === 'CLOSED');
+    const reportButton = el('chatReportButton');
+    reportButton.href = `/mypage/reports?${new URLSearchParams({
+        targetType: 'CHAT_ROOM',
+        targetId: room.chatRoomId,
+    })}`;
+    reportButton.hidden = false;
 }
 
 // ------------------------------------------------------------------

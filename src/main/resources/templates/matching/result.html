@@ -22,15 +22,12 @@
       class="matching-page"
       th:attr="data-request-id=${requestId}">
 
-    <!-- 매칭 결과 페이지 제목 -->
     <section class="matching-header">
-
         <div>
-            <h1>맞춤 상품 매칭</h1>
-
+            <p class="matching-kicker">조건 기반 매칭</p>
+            <h1>상품 매칭 결과</h1>
             <p>
-                등록한 주문 조건을 기준으로
-                거래 가능한 상품을 비교했습니다.
+                등록한 주문 조건을 기준으로 적합한 상품을 비교했습니다.
             </p>
         </div>
 
@@ -38,12 +35,49 @@
            class="matching-back-link">
             주문 상세 보기
         </a>
+    </section>
+
+    <!-- 현재 매칭의 기준이 된 주문 조건 -->
+    <section id="matchingSummary"
+             class="matching-summary"
+             hidden>
+
+        <div class="matching-summary-title">
+            <strong>매칭 기준 주문</strong>
+            <span>아래 조건을 기준으로 상품을 비교했습니다.</span>
+        </div>
+
+        <div class="matching-summary-grid">
+
+            <div class="matching-summary-item">
+                <span>음식 카테고리</span>
+                <strong id="summaryCategory"></strong>
+            </div>
+
+            <div class="matching-summary-item">
+                <span>수량</span>
+                <strong id="summaryQuantity"></strong>
+            </div>
+
+            <div class="matching-summary-item">
+                <span>예산</span>
+                <strong id="summaryBudget"></strong>
+            </div>
+
+            <div class="matching-summary-item">
+                <span>행사·배송 일시</span>
+                <strong id="summaryEventDateTime"></strong>
+            </div>
+
+        </div>
+
+        <div class="matching-summary-address">
+            <span>배송지</span>
+            <strong id="summaryDeliveryAddress"></strong>
+        </div>
 
     </section>
 
-    <!-- 주문 상세는 인증된 API 응답으로만 조회하며 HTML에는 포함하지 않는다. -->
-
-    <!-- API 조회 상태 -->
     <section id="matchingLoading"
              class="matching-message">
         매칭 가능한 상품을 확인하고 있습니다.
@@ -54,7 +88,17 @@
              hidden>
     </section>
 
-    <!-- 실제 매칭 결과 카드가 들어가는 영역 -->
+    <div id="matchingResultMeta"
+         class="matching-result-meta"
+         hidden>
+
+        <strong id="matchingResultCount"></strong>
+
+        <span>
+            매칭 점수가 높은 상품부터 보여드립니다.
+        </span>
+    </div>
+
     <section id="matchingResults"
              class="matching-results"
              hidden>

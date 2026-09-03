@@ -38,6 +38,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login",
                                 "/signup",
+                                "/suspended",
                                 "/mypage/**",
                                 "/requests/**",
                                 "/css/**",
@@ -63,6 +64,7 @@ public class SecurityConfig {
                                 "/api/v1/proposals/sent",
                                 "/api/v1/proposals/eligibility",
                                 "/api/v1/estimates/received",
+                                "/api/v1/orders/sales",
                                 "/api/v1/requests",
                                 "/api/v1/requests/search",
                                 "/api/products/*/order-requests/recommendations"

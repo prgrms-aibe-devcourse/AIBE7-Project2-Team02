@@ -6,6 +6,7 @@ import org.example.matcheat.domain.account.dto.SellerApplicationRequest;
 import org.example.matcheat.domain.account.dto.SellerApplicationResponse;
 import org.example.matcheat.domain.account.dto.UpdateAccountNameRequest;
 import org.example.matcheat.domain.account.dto.WithdrawAccountRequest;
+import org.example.matcheat.domain.account.dto.ChangePasswordRequest;
 import org.example.matcheat.domain.account.service.AccountProfileService;
 import org.example.matcheat.domain.account.service.SellerApplicationService;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,15 @@ public class AccountRestController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody UpdateAccountNameRequest request) {
         return AccountProfileResponse.from(accountProfileService.updateName(userId(jwt), request.name()));
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        accountProfileService.changePassword(userId(jwt), request.currentPassword(),
+                request.newPassword(), request.newPasswordConfirm());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/me")

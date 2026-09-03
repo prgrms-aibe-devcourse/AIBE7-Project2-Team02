@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+
     <title>견적 작성</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 24px; background: #fafafa; color: #1f2937; }
@@ -22,21 +24,44 @@
         .notice { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
         .success { background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
     </style>
+  
 </head>
 <body>
-<div class="page">
-    <div class="nav">
-        <a href="/estimates">목록</a>
-        <a href="/product">상품 목록</a>
+
+<header th:replace="~{fragments/header :: header}"></header>
+
+<main class="estimate-create-page">
+
+    <div class="estimate-page-header">
+        <h1>견적 요청</h1>
+
+        <p>
+            선택한 상품을 기준으로 판매자에게 전달할 요청 조건을 작성해주세요.
+        </p>
     </div>
 
-    <div class="card">
-        <h1 style="margin-top:0;">견적 작성</h1>
-        <p style="color:#64748b;">원하는 판매자에게 견적을 요청합니다. 아래 내용을 직접 입력해주세요.</p>
+    <div id="missingProductNotice"
+         class="estimate-notice"
+         hidden>
+        상품 정보가 없습니다.
+        상품 상세 페이지에서 견적 요청하기를 이용해주세요.
+    </div>
 
-        <div id="missingSellerNotice" class="notice">
-            상품 정보가 없습니다. 상품 상세 페이지에서 "견적 요청하기" 버튼으로 들어와주세요.
+    <!-- 견적 요청 대상 상품 -->
+    <section id="productSummary"
+             class="estimate-product-summary"
+             hidden>
+
+        <div class="estimate-section-heading">
+            <h2>상품 정보</h2>
+
+            <a id="productDetailLink"
+               class="estimate-product-link"
+               href="#">
+                상품 상세 보기
+            </a>
         </div>
+
 
         <!-- [추가] 제출 성공 안내 -->
         <div id="successNotice" class="success">
@@ -47,48 +72,165 @@
             <div class="field">
                 <label for="itemName">상품명</label>
                 <input type="text" id="itemName" placeholder="예: 한우 도시락" required>
+
             </div>
 
-            <div class="field">
-                <label for="eventDateTime">행사/이용 일시</label>
-                <input type="datetime-local" id="eventDateTime" required>
+            <div>
+                <span class="estimate-summary-label">
+                    카테고리
+                </span>
+
+                <strong data-product-summary="category">
+                    -
+                </strong>
             </div>
 
-            <div class="field">
-                <label for="budgetType">예산 유형</label>
-                <select id="budgetType" required>
-                    <option value="">선택</option>
-                    <option value="PER_PERSON">1인당 예산</option>
-                    <option value="TOTAL">총 예산</option>
+            <div>
+                <span class="estimate-summary-label">
+                    1인분 가격
+                </span>
+
+                <strong>
+                    <span data-product-summary="price">-</span>원
+                </strong>
+            </div>
+
+            <div>
+                <span class="estimate-summary-label">
+                    주문 가능 수량
+                </span>
+
+                <strong data-product-summary="headcount">
+                    -
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <form id="estimateForm"
+          class="estimate-form-card"
+          hidden>
+
+        <h2>요청 조건</h2>
+
+        <input type="hidden"
+               id="itemName">
+
+        <div class="estimate-form-row">
+
+            <div class="estimate-form-field">
+                <label for="eventDateTime">
+                    행사/이용 일시
+                </label>
+
+                <input type="datetime-local"
+                       id="eventDateTime"
+                       required>
+            </div>
+
+            <div class="estimate-form-field">
+                <label for="quantity">
+                    요청 수량
+                </label>
+
+                <div class="estimate-input-unit">
+                    <input type="number"
+                           id="quantity"
+                           min="1"
+                           step="1"
+                           placeholder="예: 20"
+                           required>
+
+                    <span>인분</span>
+                </div>
+
+                <p id="quantityHint"
+                   class="estimate-form-hint">
+                    선택한 상품의 주문 가능 수량을 확인해주세요.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="estimate-form-row">
+
+            <div class="estimate-form-field">
+                <label for="budgetType">
+                    예산 유형
+                </label>
+
+                <select id="budgetType"
+                        required>
+                    <option value="">
+                        예산 유형을 선택해주세요
+                    </option>
+
+                    <option value="PER_PERSON">
+                        1인당 예산
+                    </option>
+
+                    <option value="TOTAL">
+                        총 예산
+                    </option>
                 </select>
             </div>
 
-            <div class="field">
-                <label for="budget">예산</label>
-                <input type="number" id="budget" min="0" step="0.01" placeholder="예: 50000" required>
+            <div class="estimate-form-field">
+                <label for="budget">
+                    예산
+                </label>
+
+                <div class="estimate-input-unit">
+                    <input type="number"
+                           id="budget"
+                           min="1"
+                           step="1"
+                           placeholder="예: 15000"
+                           required>
+
+                    <span>원</span>
+                </div>
+
+                <p id="budgetGuide"
+                   class="estimate-form-hint">
+                    예산 유형과 수량을 입력하면 예상 금액을 확인할 수 있습니다.
+                </p>
             </div>
 
-            <div class="field">
-                <label for="quantity">수량(인분)</label>
-                <input type="number" id="quantity" min="1" step="1" placeholder="예: 20" required>
-                <div class="hint">예산 유형이 "총 예산"이면 이 수량으로 1인당 금액을 계산합니다.</div>
+        </div>
+
+        <div class="estimate-form-row">
+
+            <div class="estimate-form-field">
+
+                <label for="deliveryAddress">
+                    배송/행사 주소
+                </label>
+
+                <div class="estimate-address-row">
+
+                    <input type="text"
+                           id="deliveryAddress"
+                           placeholder="주소 검색을 이용해주세요."
+                           autocomplete="street-address"
+                           required>
+
+                    <button type="button"
+                            id="addressSearchButton"
+                            class="estimate-address-button">
+                        주소 검색
+                    </button>
+
+                </div>
+
+                <p class="estimate-form-hint">
+                    이 주소를 기준으로 배송 가능 여부를 확인합니다.
+                </p>
+
             </div>
 
-            <div class="field">
-                <label for="deliveryAddress">배송(행사) 주소</label>
-                <input type="text" id="deliveryAddress" placeholder="예: 서울특별시 강남구 테헤란로 152" required>
-                <div class="hint">주소를 입력하면 위경도가 자동으로 계산됩니다.</div>
-            </div>
-
-            <div class="field">
-                <label for="description">상세 설명</label>
-                <textarea id="description" placeholder="요청 사항, 전달할 내용을 적어주세요."></textarea>
-            </div>
-
-            <div class="field">
-                <label for="estimateImage">견적 이미지</label>
-                <input type="text" id="estimateImage" placeholder="이미지 URL 또는 경로">
-            </div>
 
             <div class="actions">
                 <button type="submit" id="submitButton" class="btn btn-primary">견적 요청 보내기</button>
@@ -97,9 +239,9 @@
                 <a id="goToChatButton" class="btn btn-primary" style="display:none;" href="#">
                     💬 채팅방으로 이동
                 </a>
+
             </div>
-        </form>
-    </div>
+
 
     <h2>응답 결과</h2>
     <pre id="result">아직 저장하지 않았습니다.</pre>
@@ -221,6 +363,8 @@
             submitButton.textContent = "견적 요청 보내기";
         }
     });
+
 </script>
+
 </body>
 </html>

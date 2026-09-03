@@ -3,6 +3,14 @@ import {authFetch, readApiBody, readCurrentUserId} from '/account/js/auth-client
 /**
  * 받은 제안과 보낸 제안 목록을 조회하고 받은 제안 비교 기능을 제공한다.
  */
+const pagePath =
+    window.location.pathname;
+
+const supportedPage =
+    pagePath === '/proposals'
+    || pagePath === '/mypage/offers'
+    || pagePath === '/mypage/buying-proposals'
+    || pagePath === '/mypage/selling-proposals';
 
 const proposalList =
     document.getElementById('proposalList');
@@ -75,7 +83,8 @@ function formatDateTime(value) {
         return '-';
     }
 
-    return new Date(value).toLocaleString('ko-KR');
+    return new Date(value)
+        .toLocaleString('ko-KR');
 }
 
 /**
@@ -97,8 +106,13 @@ function escapeHtml(value) {
 function clearCompareSelection() {
     selectedProposals.clear();
 
-    comparisonSection.hidden = true;
-    comparisonTable.replaceChildren();
+    if (comparisonSection) {
+        comparisonSection.hidden = true;
+    }
+
+    if (comparisonTable) {
+        comparisonTable.replaceChildren();
+    }
 
     updateCompareSelectionUi();
 }
@@ -107,6 +121,14 @@ function clearCompareSelection() {
  * 현재 선택된 제안 수와 체크박스 상태를 갱신한다.
  */
 function updateCompareSelectionUi() {
+    if (
+        !compareCount
+        || !compareButton
+        || !compareResetButton
+    ) {
+        return;
+    }
+
     const selectedCount =
         selectedProposals.size;
 
@@ -125,16 +147,24 @@ function updateCompareSelectionUi() {
             : null;
 
     document
-        .querySelectorAll('.proposal-compare-checkbox')
+        .querySelectorAll(
+            '.proposal-compare-checkbox'
+        )
         .forEach(checkbox => {
             const proposalId =
-                Number(checkbox.dataset.proposalId);
+                Number(
+                    checkbox.dataset.proposalId
+                );
 
             const requestId =
-                Number(checkbox.dataset.requestId);
+                Number(
+                    checkbox.dataset.requestId
+                );
 
             const isSelected =
-                selectedProposals.has(proposalId);
+                selectedProposals.has(
+                    proposalId
+                );
 
             checkbox.checked =
                 isSelected;
@@ -150,7 +180,9 @@ function updateCompareSelectionUi() {
                 );
 
             const card =
-                checkbox.closest('.proposal-list-item');
+                checkbox.closest(
+                    '.proposal-list-item'
+                );
 
             if (card) {
                 card.classList.toggle(
@@ -164,11 +196,18 @@ function updateCompareSelectionUi() {
 /**
  * 받은 제안의 비교 선택 상태를 변경한다.
  */
-function toggleCompareSelection(proposal, checked) {
+function toggleCompareSelection(
+    proposal,
+    checked
+) {
     if (!checked) {
-        selectedProposals.delete(proposal.id);
+        selectedProposals.delete(
+            proposal.id
+        );
 
-        comparisonSection.hidden = true;
+        if (comparisonSection) {
+            comparisonSection.hidden = true;
+        }
 
         updateCompareSelectionUi();
 
@@ -176,7 +215,9 @@ function toggleCompareSelection(proposal, checked) {
     }
 
     if (selectedProposals.size >= 3) {
-        alert('제안은 최대 3개까지 비교할 수 있습니다.');
+        alert(
+            '제안은 최대 3개까지 비교할 수 있습니다.'
+        );
 
         updateCompareSelectionUi();
 
@@ -187,7 +228,10 @@ function toggleCompareSelection(proposal, checked) {
         const firstProposal =
             [...selectedProposals.values()][0];
 
-        if (firstProposal.requestId !== proposal.requestId) {
+        if (
+            firstProposal.requestId
+            !== proposal.requestId
+        ) {
             alert(
                 '같은 주문에 들어온 제안끼리만 비교할 수 있습니다.'
             );
@@ -203,7 +247,9 @@ function toggleCompareSelection(proposal, checked) {
         proposal
     );
 
-    comparisonSection.hidden = true;
+    if (comparisonSection) {
+        comparisonSection.hidden = true;
+    }
 
     updateCompareSelectionUi();
 }
@@ -213,7 +259,9 @@ function toggleCompareSelection(proposal, checked) {
  */
 function bindCompareCheckboxes() {
     document
-        .querySelectorAll('.proposal-compare-checkbox')
+        .querySelectorAll(
+            '.proposal-compare-checkbox'
+        )
         .forEach(checkbox => {
             checkbox.addEventListener(
                 'change',
@@ -247,6 +295,10 @@ function bindCompareCheckboxes() {
  * 목록 데이터를 카드 형태로 렌더링한다.
  */
 function renderProposals(proposals) {
+    if (!proposalList) {
+        return;
+    }
+
     currentProposals =
         Array.isArray(proposals)
             ? proposals
@@ -255,7 +307,9 @@ function renderProposals(proposals) {
     clearCompareSelection();
 
     if (currentProposals.length === 0) {
-        compareToolbar.hidden = true;
+        if (compareToolbar) {
+            compareToolbar.hidden = true;
+        }
 
         proposalList.innerHTML = `
             <div class="proposal-list-empty">
@@ -270,131 +324,142 @@ function renderProposals(proposals) {
         return;
     }
 
-    compareToolbar.hidden =
-        currentTab !== 'received';
+    if (compareToolbar) {
+        compareToolbar.hidden =
+            currentTab !== 'received';
+    }
 
     proposalList.innerHTML = '';
 
-    currentProposals.forEach(proposal => {
-        const card =
-            document.createElement('article');
+    currentProposals.forEach(
+        proposal => {
+            const card =
+                document.createElement(
+                    'article'
+                );
 
-        card.className =
-            'proposal-list-item';
+            card.className =
+                'proposal-list-item';
 
-        const compareSelector =
-            currentTab === 'received'
-                ? `
-            <label class="proposal-compare-selector">
-                <input
-                    type="checkbox"
-                    class="proposal-compare-checkbox"
-                    data-proposal-id="${proposal.id}"
-                    data-request-id="${proposal.requestId}"
-                >
-                <span>비교</span>
-            </label>
-        `
-                : '';
+            const compareSelector =
+                currentTab === 'received'
+                    ? `
+                        <label class="proposal-compare-selector">
+                            <input
+                                type="checkbox"
+                                class="proposal-compare-checkbox"
+                                data-proposal-id="${proposal.id}"
+                                data-request-id="${proposal.requestId}"
+                            >
+                            <span>비교</span>
+                        </label>
+                    `
+                    : '';
 
-        card.innerHTML = `
-    <div class="proposal-list-item-main">
+            card.innerHTML = `
+                <div class="proposal-list-item-main">
 
-        <div class="proposal-list-item-header">
+                    <div class="proposal-list-item-header">
 
-            <div class="proposal-list-title-area">
+                        <div class="proposal-list-title-area">
 
-                <div class="proposal-list-kicker">
-                    ${compareSelector}
+                            <div class="proposal-list-kicker">
+                                ${compareSelector}
 
-                    <span class="proposal-request-number">
-                        주문 #${proposal.requestId}
+                                <span class="proposal-request-number">
+                                    주문 #${proposal.requestId}
+                                </span>
+                            </div>
+
+                            <h2>
+                                ${escapeHtml(proposal.itemName)}
+                            </h2>
+
+                        </div>
+
+                        <div class="proposal-list-header-actions">
+
+                            <span class="proposal-status-badge">
+                                ${proposalStatusLabel(proposal.status)}
+                            </span>
+
+                            <a
+                                href="/requests/${proposal.requestId}"
+                                class="proposal-list-order-link"
+                            >
+                                주문 보기
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <div class="proposal-list-meta">
+
+                        <div>
+                            <span class="proposal-list-meta-label">
+                                수량
+                            </span>
+
+                            <strong>
+                                ${proposal.quantity}명
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="proposal-list-meta-label">
+                                1인 단가
+                            </span>
+
+                            <strong>
+                                ${formatMoney(proposal.unitPrice)}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="proposal-list-meta-label">
+                                최종 제안 금액
+                            </span>
+
+                            <strong>
+                                ${formatMoney(proposal.totalAmount)}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span class="proposal-list-meta-label">
+                                준비 기간
+                            </span>
+
+                            <strong>
+                                ${proposal.preparationDays}일
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    ${
+                proposal.description
+                    ? `
+                                <p class="proposal-list-description">
+                                    ${escapeHtml(proposal.description)}
+                                </p>
+                            `
+                    : ''
+            }
+
+                    <span class="proposal-list-date">
+                        ${formatDateTime(proposal.createdAt)}
                     </span>
+
                 </div>
+            `;
 
-                <h2>
-                    ${escapeHtml(proposal.itemName)}
-                </h2>
-
-            </div>
-
-            <div class="proposal-list-header-actions">
-
-                <span class="proposal-status-badge">
-                    ${proposalStatusLabel(proposal.status)}
-                </span>
-
-                <a href="/requests/${proposal.requestId}"
-                   class="proposal-list-order-link">
-                    주문 보기
-                </a>
-
-            </div>
-
-        </div>
-
-        <div class="proposal-list-meta">
-
-            <div>
-                <span class="proposal-list-meta-label">
-                    수량
-                </span>
-
-                <strong>
-                    ${proposal.quantity}명
-                </strong>
-            </div>
-
-            <div>
-                <span class="proposal-list-meta-label">
-                    1인 단가
-                </span>
-
-                <strong>
-                    ${formatMoney(proposal.unitPrice)}
-                </strong>
-            </div>
-
-            <div>
-                <span class="proposal-list-meta-label">
-                    최종 제안 금액
-                </span>
-
-                <strong>
-                    ${formatMoney(proposal.totalAmount)}
-                </strong>
-            </div>
-
-            <div>
-                <span class="proposal-list-meta-label">
-                    준비 기간
-                </span>
-
-                <strong>
-                    ${proposal.preparationDays}일
-                </strong>
-            </div>
-
-        </div>
-
-        ${
-            proposal.description
-                ? `
-                    <p class="proposal-list-description">
-                        ${escapeHtml(proposal.description)}
-                    </p>
-                `
-                : ''
+            proposalList.appendChild(
+                card
+            );
         }
-
-        <span class="proposal-list-date">
-            ${formatDateTime(proposal.createdAt)}
-        </span>
-
-    </div>
-`;
-        proposalList.appendChild(card);
-    });
+    );
 
     if (currentTab === 'received') {
         bindCompareCheckboxes();
@@ -406,6 +471,13 @@ function renderProposals(proposals) {
  * 선택한 Proposal들을 비교표로 표시한다.
  */
 function renderComparison() {
+    if (
+        !comparisonSection
+        || !comparisonTable
+    ) {
+        return;
+    }
+
     const proposals =
         [...selectedProposals.values()];
 
@@ -418,17 +490,19 @@ function renderComparison() {
 
     const headerCells =
         proposals
-            .map((proposal, index) => `
-                <th>
-                    <span class="proposal-comparison-column-number">
-                        제안 ${index + 1}
-                    </span>
+            .map(
+                (proposal, index) => `
+                    <th>
+                        <span class="proposal-comparison-column-number">
+                            제안 ${index + 1}
+                        </span>
 
-                    <strong>
-                        ${escapeHtml(proposal.itemName)}
-                    </strong>
-                </th>
-            `)
+                        <strong>
+                            ${escapeHtml(proposal.itemName)}
+                        </strong>
+                    </th>
+                `
+            )
             .join('');
 
     const rows = [
@@ -491,11 +565,14 @@ function renderComparison() {
         },
         {
             label: '제안 설명',
-            className: 'proposal-comparison-description-row',
+            className:
+                'proposal-comparison-description-row',
             values: proposals.map(
                 proposal =>
                     proposal.description
-                        ? escapeHtml(proposal.description)
+                        ? escapeHtml(
+                            proposal.description
+                        )
                         : '-'
             )
         },
@@ -562,11 +639,17 @@ function renderComparison() {
  * 선택한 탭의 Proposal 목록을 서버에서 조회한다.
  */
 async function loadProposals(tab) {
+    if (!proposalList) {
+        return;
+    }
+
     currentTab = tab;
 
     clearCompareSelection();
 
-    compareToolbar.hidden = true;
+    if (compareToolbar) {
+        compareToolbar.hidden = true;
+    }
 
     proposalList.innerHTML = `
         <div class="proposal-list-empty">
@@ -579,40 +662,53 @@ async function loadProposals(tab) {
             ? '/api/v1/proposals/received'
             : '/api/v1/proposals/sent';
 
-    const response =
-        await authFetch(url);
+    try {
+        const response =
+            await authFetch(url);
 
-    if (response.status === 401) {
-        const redirect =
-            encodeURIComponent(
-                window.location.pathname
-            );
+        if (response.status === 401) {
+            const redirect =
+                encodeURIComponent(
+                    window.location.pathname
+                );
 
-        window.location.href =
-            `/login?redirect=${redirect}`;
+            window.location.href =
+                `/login?redirect=${redirect}`;
 
-        return;
-    }
+            return;
+        }
 
-    const body =
-        await readApiBody(response);
+        const body =
+            await readApiBody(response);
 
-    if (!response.ok) {
+        if (!response.ok) {
+            proposalList.innerHTML = `
+                <div class="proposal-list-empty">
+                    ${
+                escapeHtml(
+                    body?.message
+                    ?? '제안 목록을 불러오지 못했습니다.'
+                )
+            }
+                </div>
+            `;
+
+            return;
+        }
+
+        renderProposals(body);
+    } catch (error) {
+        console.error(
+            '제안 목록 조회 실패:',
+            error
+        );
+
         proposalList.innerHTML = `
             <div class="proposal-list-empty">
-                ${
-            escapeHtml(
-                body?.message
-                ?? '제안 목록을 불러오지 못했습니다.'
-            )
-        }
+                제안 목록을 불러오지 못했습니다.
             </div>
         `;
-
-        return;
     }
-
-    renderProposals(body);
 }
 
 /**
@@ -629,35 +725,53 @@ function selectTab(tab) {
     loadProposals(tab);
 }
 
-tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        selectTab(
-            button.dataset.proposalTab
+/**
+ * 제안 목록 화면 이벤트를 연결한다.
+ */
+function bindEvents() {
+    tabButtons.forEach(button => {
+        button.addEventListener(
+            'click',
+            () => {
+                selectTab(
+                    button.dataset.proposalTab
+                );
+            }
         );
     });
-});
 
-compareButton.addEventListener(
-    'click',
-    renderComparison
-);
+    compareButton?.addEventListener(
+        'click',
+        renderComparison
+    );
 
-compareResetButton.addEventListener(
-    'click',
-    clearCompareSelection
-);
+    compareResetButton?.addEventListener(
+        'click',
+        clearCompareSelection
+    );
 
-comparisonCloseButton.addEventListener(
-    'click',
-    () => {
-        comparisonSection.hidden = true;
-    }
-);
+    comparisonCloseButton?.addEventListener(
+        'click',
+        () => {
+            if (comparisonSection) {
+                comparisonSection.hidden = true;
+            }
+        }
+    );
+}
 
 /**
- * 로그인 여부를 확인한 뒤 기본 탭을 조회한다.
+ * 제안 목록을 사용하는 페이지에서만 초기 조회를 실행한다.
  */
 function initialize() {
+    if (!supportedPage) {
+        return;
+    }
+
+    if (!proposalList) {
+        return;
+    }
+
     if (currentUserId === null) {
         const redirect =
             encodeURIComponent(
@@ -669,8 +783,14 @@ function initialize() {
 
         return;
     }
+    bindEvents();
 
-    loadProposals('received');
+    const initialTab =
+        pagePath === '/mypage/selling-proposals'
+            ? 'sent'
+            : 'received';
+
+    selectTab(initialTab);
 }
 
 initialize();

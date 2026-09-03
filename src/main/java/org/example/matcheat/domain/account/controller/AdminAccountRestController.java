@@ -52,7 +52,7 @@ public class AdminAccountRestController {
             @PathVariable long userId,
             @Valid @RequestBody AdminUserStatusRequest request) {
         return AdminUserResponse.from(service.changeUserStatus(
-                userId(jwt), userId, request.status()));
+                userId(jwt), userId, request.status(), request.reason()));
     }
 
     @GetMapping("/seller-applications")
