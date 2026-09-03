@@ -4,11 +4,12 @@
 
 <head>
     <th:block th:replace="~{fragments/favicon :: favicon}"></th:block>
+
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, initial-scale=1">
 
-    <title>견적 요청 작성 | MatchEAT</title>
+    <title>견적 요청 | MatchEAT</title>
 
     <link rel="stylesheet"
           th:href="@{/css/common.css}">
@@ -16,7 +17,7 @@
     <link rel="stylesheet"
           th:href="@{/css/estimate.css}">
 
-    <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 
 <body>
@@ -58,8 +59,13 @@
         <div class="estimate-summary-grid">
 
             <div>
-                <span class="estimate-summary-label">상품명</span>
-                <strong data-product-summary="name">-</strong>
+                <span class="estimate-summary-label">
+                    상품명
+                </span>
+
+                <strong data-product-summary="name">
+                    조회 중
+                </strong>
             </div>
 
             <div>
@@ -158,52 +164,57 @@
 
         </div>
 
-        <div class="estimate-form-row">
+        <div class="estimate-form-field estimate-form-full">
 
-            <div class="estimate-form-field">
-                <label for="deliveryAddress">배송/행사 주소</label>
+            <label for="deliveryAddress">
+                배송/행사 주소
+            </label>
 
-                <div class="estimate-address-row">
-                    <input type="text"
-                           id="deliveryAddress"
-                           placeholder="주소 검색을 이용해주세요."
-                           autocomplete="street-address"
-                           readonly
-                           required>
-
-                    <button type="button"
-                            id="addressSearchButton"
-                            class="estimate-address-button">
-                        주소 검색
-                    </button>
-                </div>
-
-                <p class="estimate-form-hint">
-                    이 주소를 기준으로 배송 가능 여부를 확인합니다.
-                </p>
-            </div>
-
-            <div class="estimate-form-field">
-                <label for="deliveryAddressDetail">상세 주소</label>
+            <div class="estimate-address-row">
 
                 <input type="text"
-                       id="deliveryAddressDetail"
-                       placeholder="동/호수 등 상세 주소를 입력해주세요.">
+                       id="deliveryAddress"
+                       placeholder="배송 또는 행사 장소를 입력해주세요."
+                       autocomplete="street-address"
+                       required>
+
+                <button type="button"
+                        id="addressSearchButton"
+                        class="estimate-address-button">
+                    주소 검색
+                </button>
+
             </div>
+
+            <p class="estimate-form-hint">
+                입력한 주소를 기준으로 판매자의 배송 가능 여부를 확인할 수 있습니다.
+            </p>
 
         </div>
 
-        <div class="estimate-form-full estimate-form-field">
-            <label for="description">추가 요청 사항</label>
+        <div class="estimate-form-field estimate-form-full">
+
+            <label for="description">
+                요청 사항
+            </label>
 
             <textarea id="description"
-                      placeholder="판매자에게 전달할 추가 요청 사항을 입력해주세요."></textarea>
+                      rows="6"
+                      maxlength="1000"
+                      placeholder="메뉴 구성, 포장 방식, 알레르기, 배송 시간 등 판매자에게 전달할 내용을 입력해주세요."></textarea>
+
+        </div>
+
+        <div id="estimateError"
+             class="estimate-form-error"
+             hidden>
         </div>
 
         <div class="estimate-form-actions">
+
             <a id="estimateCancelButton"
                class="estimate-cancel-button"
-               href="/">
+               href="/product">
                 취소
             </a>
 
@@ -212,6 +223,7 @@
                     class="estimate-submit-button">
                 견적 요청 보내기
             </button>
+
         </div>
 
     </form>
