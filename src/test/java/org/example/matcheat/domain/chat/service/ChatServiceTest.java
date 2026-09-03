@@ -1,12 +1,15 @@
 package org.example.matcheat.domain.chat.service;
 
+import org.example.matcheat.domain.account.repository.SellerApplicationRepository;
+import org.example.matcheat.domain.account.repository.UserCredentialRepository;
 import org.example.matcheat.domain.account.service.TradeAccountValidationService;
 import org.example.matcheat.domain.chat.dto.ChatRoomResponse;
 import org.example.matcheat.domain.chat.entity.ChatMessage;
 import org.example.matcheat.domain.chat.entity.ChatRoom;
 import org.example.matcheat.domain.chat.repository.ChatMessageRepository;
 import org.example.matcheat.domain.chat.repository.ChatRoomRepository;
-import org.example.matcheat.domain.chat.support.ProductOwnerLookup;
+import org.example.matcheat.domain.order.service.OrderRequestService;
+import org.example.matcheat.support.product.ProductOwnerLookup;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -21,9 +24,24 @@ class ChatServiceTest {
     private final ChatMessageRepository messages = mock(ChatMessageRepository.class);
     private final TradeAccountValidationService accounts = mock(TradeAccountValidationService.class);
     private final ProductOwnerLookup productOwnerLookup = mock(ProductOwnerLookup.class);
+    private final OrderRequestService orderRequestService = mock(OrderRequestService.class);
+    private final UserCredentialRepository users =
+            mock(UserCredentialRepository.class);
+
+    private final SellerApplicationRepository sellerApplications =
+            mock(SellerApplicationRepository.class);
+
 
     private final ChatService service =
-            new ChatService(chatRooms, messages, accounts, productOwnerLookup);
+            new ChatService(
+                    chatRooms,
+                    messages,
+                    accounts,
+                    productOwnerLookup,
+                    orderRequestService,
+                    users,
+                    sellerApplications
+            );
 
     @Test
     void returnsParticipantRoomsWithLatestMessageSnippets() {

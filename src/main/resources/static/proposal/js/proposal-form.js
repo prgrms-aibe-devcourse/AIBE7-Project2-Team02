@@ -399,8 +399,40 @@ if (form) {
 
         alert('제안이 전송되었습니다.');
 
+        const chatResponse =
+            await authFetch(
+                '/api/v1/chat-rooms',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderRequestId: Number(requestId),
+                        proposalId: body.id,
+                        originType: 'PROPOSAL'
+                    })
+                }
+            );
+
+        const chatRoom =
+            await readApiBody(chatResponse);
+
+        if (!chatResponse.ok) {
+            alert(
+                chatRoom?.message
+                ?? '제안은 전송되었지만 채팅방을 열지 못했습니다.'
+            );
+
+            window.location.href =
+                `/requests/${requestId}`;
+
+            return;
+        }
+
         window.location.href =
-            `/requests/${requestId}`;
+            `/chat?roomId=${chatRoom.chatRoomId}`;
     });
 
     initialize();

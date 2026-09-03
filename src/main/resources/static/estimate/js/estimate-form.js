@@ -378,8 +378,34 @@ async function submitEstimate(event) {
             '견적 요청이 전송되었습니다.'
         );
 
+        const chatResponse =
+            await authFetch(
+                '/api/v1/chat-rooms',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        originType: 'INQUIRY'
+                    })
+                }
+            );
+
+        const chatRoom =
+            await readApiBody(chatResponse);
+
+        if (!chatResponse.ok) {
+            throw new Error(
+                chatRoom?.message
+                ?? '채팅방을 열지 못했습니다.'
+            );
+        }
+
         window.location.href =
-            '/mypage/buying-estimates';
+            `/chat?roomId=${chatRoom.chatRoomId}`;
 
     } catch (error) {
         showError(
