@@ -27,7 +27,7 @@
 <main class="estimate-create-page">
 
     <div class="estimate-page-header">
-        <h1>견적 요청</h1>
+        <h1>견적 요청 작성</h1>
 
         <p>
             선택한 상품을 기준으로 판매자에게 전달할 요청 조건을 작성해주세요.
@@ -69,33 +69,18 @@
             </div>
 
             <div>
-                <span class="estimate-summary-label">
-                    카테고리
-                </span>
-
-                <strong data-product-summary="category">
-                    -
-                </strong>
+                <span class="estimate-summary-label">카테고리</span>
+                <strong data-product-summary="category">-</strong>
             </div>
 
             <div>
-                <span class="estimate-summary-label">
-                    1인분 가격
-                </span>
-
-                <strong>
-                    <span data-product-summary="price">-</span>원
-                </strong>
+                <span class="estimate-summary-label">1인분 가격</span>
+                <strong><span data-product-summary="price">-</span>원</strong>
             </div>
 
             <div>
-                <span class="estimate-summary-label">
-                    주문 가능 수량
-                </span>
-
-                <strong data-product-summary="headcount">
-                    -
-                </strong>
+                <span class="estimate-summary-label">주문 가능 수량</span>
+                <strong data-product-summary="headcount">-</strong>
             </div>
 
         </div>
@@ -108,15 +93,17 @@
 
         <h2>요청 조건</h2>
 
-        <input type="hidden"
-               id="itemName">
+        <div id="estimateError"
+             class="estimate-form-error"
+             hidden>
+        </div>
+
+        <input type="hidden" id="itemName">
 
         <div class="estimate-form-row">
 
             <div class="estimate-form-field">
-                <label for="eventDateTime">
-                    행사/이용 일시
-                </label>
+                <label for="eventDateTime">행사/이용 일시</label>
 
                 <input type="datetime-local"
                        id="eventDateTime"
@@ -124,9 +111,7 @@
             </div>
 
             <div class="estimate-form-field">
-                <label for="quantity">
-                    요청 수량
-                </label>
+                <label for="quantity">요청 수량</label>
 
                 <div class="estimate-input-unit">
                     <input type="number"
@@ -139,8 +124,7 @@
                     <span>인분</span>
                 </div>
 
-                <p id="quantityHint"
-                   class="estimate-form-hint">
+                <p id="quantityHint" class="estimate-form-hint">
                     선택한 상품의 주문 가능 수량을 확인해주세요.
                 </p>
             </div>
@@ -150,30 +134,17 @@
         <div class="estimate-form-row">
 
             <div class="estimate-form-field">
-                <label for="budgetType">
-                    예산 유형
-                </label>
+                <label for="budgetType">예산 유형</label>
 
-                <select id="budgetType"
-                        required>
-                    <option value="">
-                        예산 유형을 선택해주세요
-                    </option>
-
-                    <option value="PER_PERSON">
-                        1인당 예산
-                    </option>
-
-                    <option value="TOTAL">
-                        총 예산
-                    </option>
+                <select id="budgetType" required>
+                    <option value="">예산 유형을 선택해주세요</option>
+                    <option value="PER_PERSON">1인당 예산</option>
+                    <option value="TOTAL">총 예산</option>
                 </select>
             </div>
 
             <div class="estimate-form-field">
-                <label for="budget">
-                    예산
-                </label>
+                <label for="budget">예산</label>
 
                 <div class="estimate-input-unit">
                     <input type="number"
@@ -186,8 +157,7 @@
                     <span>원</span>
                 </div>
 
-                <p id="budgetGuide"
-                   class="estimate-form-hint">
+                <p id="budgetGuide" class="estimate-form-hint">
                     예산 유형과 수량을 입력하면 예상 금액을 확인할 수 있습니다.
                 </p>
             </div>
