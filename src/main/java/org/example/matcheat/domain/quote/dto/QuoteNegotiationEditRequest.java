@@ -18,4 +18,6 @@ public class QuoteNegotiationEditRequest {
 	private Long unitPrice;
 
 	private Long deliveryFee;
+
+	private String additionalNotes; // [추가] 항목으로 표현 안 되는 조건 자유 기입 (선택값)
 }

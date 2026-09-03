@@ -56,4 +56,12 @@ public class TradeAccountValidationService {
             return null;
         }
     }
+    /**
+     * sellerId(seller_profiles PK) → 그 판매자 계정의 userId(users.user_id) 역방향 조회.
+     * 승인 여부는 확인하지 않는다 (승인 여부까지 확인하려면 requireApprovedSeller를 별도로 호출).
+     */
+    public long userIdForSellerId(long sellerId) {
+        return sellerApplications.findUserIdBySellerId(sellerId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 판매자입니다."));
+    }
 }

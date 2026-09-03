@@ -130,19 +130,7 @@
                     <!-- 견적 영역: 공식 견적서만 -->
                     <aside class="chat-quote-column" id="chatQuoteColumn">
 
-                        <!-- 연결된 상품 표시 + 테스트용 변경 -->
-                        <section class="chat-quote-card">
-                            <div class="chat-product-tag">
-                                <div class="chat-product-tag-info">
-                                    <span class="chat-product-tag-name" id="quoteProductName">연결된 상품 없음</span>
-                                    <span class="chat-product-tag-id" id="quoteProductId">-</span>
-                                </div>
-                                <div class="chat-product-tag-edit">
-                                    <input type="number" id="quoteProductIdInput" min="1" placeholder="상품 ID">
-                                    <button type="button" id="quoteProductIdChangeButton" class="chat-btn">변경</button>
-                                </div>
-                            </div>
-                        </section>
+
 
                         <!-- 공식 견적서 -->
                         <section class="chat-quote-card">
@@ -159,6 +147,14 @@
                             </div>
 
                             <form id="quoteComposeForm" class="chat-quote-form" hidden>
+
+                                <div class="chat-quote-field">
+                                    <label for="quoteProductId">연결 상품</label>
+                                    <select id="quoteProductId" required>
+                                        <option value="" disabled selected>상품을 불러오는 중...</option>
+                                    </select>
+                                </div>
+
                                 <div class="chat-quote-field">
                                     <label for="quoteItemName">상품명</label>
                                     <input type="text" id="quoteItemName" placeholder="예: 한우 도시락">
@@ -179,7 +175,7 @@
                                 </div>
 
                                 <div class="chat-quote-field">
-                                    <label for="quoteBudget">예산</label>
+                                    <label for="quoteBudget" id="quoteBudgetLabel">예산</label>
                                     <input type="number" id="quoteBudget" min="0" step="0.01" placeholder="예: 50000">
                                 </div>
 
@@ -187,9 +183,11 @@
                                     <label for="quoteQuantity">수량</label>
                                     <input type="number" id="quoteQuantity" min="1" required>
                                 </div>
-                                <div class="chat-quote-field">
-                                    <label for="quoteUnitPrice">1인 단가</label>
-                                    <input type="number" id="quoteUnitPrice" min="1" required>
+
+                                <!-- [추가] -->
+                                <div class="chat-quote-total">
+                                    <span>합계</span>
+                                    <strong id="quoteComposeTotalAmount">0원</strong>
                                 </div>
 
                                 <div class="chat-quote-field">
@@ -202,30 +200,21 @@
                                     <textarea id="quoteDescription" placeholder="배송비 등 항목으로 표현하기 어려운 내용은 여기에 적어주세요."></textarea>
                                 </div>
 
+                                <!-- [추가] additionalNotes 표시 자리 -->
+                                <p class="chat-quote-notes" id="quoteDetailNotes" hidden></p>
+
                                 <div class="chat-quote-actions">
                                     <button type="submit" class="chat-btn chat-btn-primary">보내기</button>
                                     <button type="button" id="quoteComposeCancel" class="chat-btn chat-btn-ghost">취소</button>
                                 </div>
+
+                                <!-- [추가] renderQuoteActions가 채우는 자리를 이 폼 안으로 이동 -->
+                                <div class="chat-quote-actions" id="quoteActionArea"></div>
                             </form>
 
-                            <div id="quoteDetail" class="chat-quote-detail" hidden>
-                                <div class="chat-quote-detail-row">
-                                    <span>수량</span>
-                                    <strong id="quoteDetailQuantity"></strong>
-                                </div>
-                                <div class="chat-quote-detail-row">
-                                    <span>1인 단가</span>
-                                    <strong id="quoteDetailUnitPrice"></strong>
-                                </div>
-                                <div class="chat-quote-detail-row chat-quote-detail-total">
-                                    <span>합계</span>
-                                    <strong id="quoteDetailTotal"></strong>
-                                </div>
+                            <!-- [삭제] quoteDetail 섹션 전체를 여기서 지웁니다 -->
 
-                                <p class="chat-quote-notes" id="quoteDetailNotes" hidden></p>
 
-                                <div class="chat-quote-actions" id="quoteActionArea"></div>
-                            </div>
                         </section>
 
                     </aside>
